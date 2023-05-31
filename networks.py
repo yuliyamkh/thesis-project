@@ -1,8 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
-n = 50    # Number of nodes
-k = 4  # Each node is connected to k nearest neighbors
+n = 10    # Number of nodes
+k = 6  # Each node is connected to k nearest neighbors
 rewiring_probs = [0, 0.1, 0.3, 0.5, 0.7, 1]
 
 # Create subplots
@@ -12,8 +12,8 @@ ax = axes.flatten()
 # Generate and draw the networks
 for i, p in enumerate(rewiring_probs):
     G = nx.watts_strogatz_graph(n, k, p)
-    nx.draw_circular(G, ax=ax[i], node_size=n, with_labels=False)
-    # nx.draw(G, ax=ax[i], node_size=10, with_labels=False)
+    # nx.draw(G, node_color='blue', edge_color='gray', node_size=8)
+    nx.draw_circular(G, ax=ax[i], node_size=8, with_labels=False)
     average_path_length = round(nx.average_shortest_path_length(G), 2)
     average_clustering_coefficient = round(nx.average_clustering(G), 2)
     ax[i].set_axis_off()
