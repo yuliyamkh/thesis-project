@@ -3,8 +3,10 @@ import copy
 import agentpy as ap
 import numpy as np
 import networkx as nx
-from utils import selection
+from utils import replicator_selection
+from utils import interactor_selection
 from utils import batch_simulate
+import random
 
 
 class Agent(ap.Agent):
@@ -16,8 +18,15 @@ class Agent(ap.Agent):
         before the simulation starts
         """
 
+        self.memory = []
+
+        if self.id <= self.p.n:
+            self.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[1, 0])
+        if self.id > self.p.n:
+            self.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[0, 1])
+
         # Initial distribution of v1 and v2
-        self.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[self.p.initial_frequency, 1-self.p.initial_frequency])
+        # self.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[self.p.initial_frequency, 1-self.p.initial_frequency])
 
         # Probability of choosing v1
         self.x = np.count_nonzero(self.memory == 'v1') / len(self.memory)
@@ -36,7 +45,9 @@ class Agent(ap.Agent):
         Produce an utterance by sampling one token from the store
         """
 
-        self.sampled_token = np.random.choice(self.p.lingueme, size=1, p=[self.x, 1-self.x])[0]
+        # if replicator_select:
+        #     self.sampled_token = np.random.choice(self.p.lingueme, size=1, p=[self.x, 1-self.x])[0]
+        self.sampled_token = np.random.choice(self.p.lingueme, size=1, p=[self.updated_x, 1 - self.updated_x])[0]
 
     def reinforce(self) -> None:
         """
@@ -55,29 +66,31 @@ class Agent(ap.Agent):
         self.updated_memory = np.append(self.updated_memory, self.sampled_token)
 
         # Selection
-        if self.sampled_token == 'v1':
-            self.x = selection(self.x, b=0.001)
+        # if replicator_select:
+        #     if self.sampled_token == 'v1':
+        #         self.x = replicator_selection(self.x, b=0.001)
 
     def listen(self, neighbour) -> None:
         """
         Listen to the neighbour to match more closely his behaviour
         Replacing the randomly removed token in the story with the
         neighbour's sampled token
+        :param select: True or False
         :param neighbour: one of the k agent's neighbours
         """
 
-        # Choose a random index to remove
-        randon_index = np.random.randint(len(self.updated_memory))
+        # Replicator selection
+        # if neighbour.sampled_token == 'v1':
+        #     self.x = replicator_selection(self.x, b=0.001)
 
-        # Remove the element at the random index
-        self.updated_memory = np.delete(self.updated_memory, randon_index)
-
-        # Append the neighbour's sampled token
-        self.updated_memory = np.append(self.updated_memory, neighbour.sampled_token)
-
-        # Selection
-        if neighbour.sampled_token == 'v1':
-            self.x = selection(self.x, b=0.001)
+        # Interactor selection
+        if self.id > self.p.n and neighbour.id <= self.p.n:
+            # Choose a random index to remove
+            randon_index = np.random.randint(len(self.updated_memory))
+            # Remove the element at the random index
+            self.updated_memory = np.delete(self.updated_memory, randon_index)
+            # Append the neighbour's sampled token
+            self.updated_memory = np.append(self.updated_memory, neighbour.sampled_token)
 
     def update(self):
         """
@@ -86,7 +99,9 @@ class Agent(ap.Agent):
         """
         self.updated_x = np.count_nonzero(self.updated_memory == 'v1') / len(self.updated_memory)
         self.record('x', self.updated_x)
-        self.record('initial_x', self.x)
+
+        # if select:
+        #     self.record('initial_x', self.x)
 
 
 class LangChangeModel(ap.Model):
@@ -115,8 +130,8 @@ class LangChangeModel(ap.Model):
 
         # Record average belief after each simulation step
         average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        average_x = sum(self.agents.x) / len(self.agents.x)
-        self.record('average_x', average_x)
+        # average_x = sum(self.agents.x) / len(self.agents.x)
+        # self.record('average_x', average_x)
         self.record('average_updated_x', average_updated_x)
 
     def step(self):
@@ -158,19 +173,24 @@ class LangChangeModel(ap.Model):
 
 
 # Set up parameters for the model
-parameters = {'agents': 50,
+parameters = {'agents': 100,
+              'n': 5,
+              'a': 50,
               'lingueme': ['v1', 'v2'],
               'memory_size': 10,
-              'initial_frequency': 0.1,
+              'initial_frequency': 0.01,
               'number_of_neighbors': 8,
-              'network_density': 1,
-              'steps': 300000
+              'network_density': 0.01,
+              'steps': 10000
               }
 
 # model = LangChangeModel()
 # results = model.run()
+# print(results.save())
+# exit()
 # Run N number of simulations
-batch_simulate(num_sim=3, model=LangChangeModel, params=parameters)
+random.seed(123)
+batch_simulate(num_sim=2, model=LangChangeModel, params=parameters)
 exit()
 
 # Set up parameters for the experiment

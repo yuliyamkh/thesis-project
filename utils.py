@@ -6,9 +6,9 @@ Helper functions
 """
 
 
-def selection(relative_freq_innovation: float, b: float) -> float:
+def replicator_selection(relative_freq_innovation: float, b: float) -> float:
     """
-    Generate positive replicator selection
+    Generate replicator selection
     :param b: selection pressure
     :param relative_freq_innovation: relative frequency of using innovation
     :return: updated relative frequency of using innovation
@@ -21,6 +21,33 @@ def selection(relative_freq_innovation: float, b: float) -> float:
         updated_relative_freq_innovation = 1
 
     return updated_relative_freq_innovation
+
+
+def interactor_selection(a: float, n: int,
+                         agent_id: int, neighbor_id: int,
+                         agent_u: float,
+                         agent_x: float) -> float:
+    """
+    Generate interactor selection
+    :return: updated relative frequency of using innovation
+    """
+
+    h_ij = 0.01
+
+    if agent_id > n and neighbor_id <= n:
+        h_ij = 0.01*a
+    else:
+        h_ij = h_ij
+
+    y = (1-h_ij) * agent_u + h_ij * agent_u
+    agent_x = agent_x + y
+
+    if agent_x < 0:
+        agent_x = 0
+    if agent_x > 1:
+        agent_x = 1
+
+    return agent_x
 
 
 def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
@@ -39,7 +66,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
         model_i = model(params)
         results_i = model_i.run()
         data = results_i.variables.LangChangeModel
-        data['average_x'].plot(linewidth=0.8)
+        data['average_updated_x'].plot(linewidth=0.8)
 
     plt.ylim((0, 1))
     plt.xlabel('t')
