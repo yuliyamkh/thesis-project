@@ -1,5 +1,11 @@
-import matplotlib.pyplot as plt
+
 import networkx as nx
+import community
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+import matplotlib.cm as cm
+import numpy as np
+from scipy.cluster import hierarchy
 
 
 def split_network(graph):
@@ -29,4 +35,7 @@ def split_population(graph):
     return subpops
 
 
-print(split_population(graph=nx.watts_strogatz_graph(10, 2, 0.5)))
+G = nx.watts_strogatz_graph(10, 5, 0.5)
+dendo = nx.community.louvain_communities(G)
+print(list(dendo))
+

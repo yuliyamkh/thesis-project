@@ -69,7 +69,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
         data['average_updated_x'].plot(linewidth=0.8)
 
     plt.ylim((0, 1))
-    plt.xlabel('t')
+    plt.xlabel('time')
 
     text = (f'agents = {params["agents"]}\n'
                          f'neighbors = {params["number_of_neighbors"]}\n'

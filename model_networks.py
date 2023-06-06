@@ -92,7 +92,6 @@ class LangChangeModel(ap.Model):
         """
 
         self.split = 0
-        self.start = True
         self.interaction = 0
         self.iteration = 0
 
@@ -112,6 +111,24 @@ class LangChangeModel(ap.Model):
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
 
+    def interact(self, network):
+        """Agents interaction"""
+        agent = self.random.choice(list(network.agents))
+        neighbors = [j for j in network.neighbors(agent)]
+        neighbor = self.random.choice(neighbors)
+
+        agent.speak()
+        neighbor.speak()
+
+        agent.reinforce()
+        neighbor.reinforce()
+
+        agent.listen(neighbor)
+        neighbor.listen(agent)
+
+        agent.update()
+        neighbor.update()
+
     def split_network(self):
         """Split network"""
 
@@ -120,8 +137,6 @@ class LangChangeModel(ap.Model):
         for subgraph in self.subgraphs:
             self.subgraph_network = ap.Network(self, subgraph)
             self.subgraph_network.add_agents(self.agents, self.subgraph_network.nodes)
-            # nx.draw(self.subgraph_network.graph, with_labels=True)
-            # plt.show()
             self.subgraph_networks.append(self.subgraph_network)
 
     def split_network2(self):
@@ -139,16 +154,12 @@ class LangChangeModel(ap.Model):
         for i, subgraph_networks in self.subgraph_networks2.items():
             self.subgraph_networks2[i] = [[] for _ in range(len(subgraph_networks))]
             for idx in range(len(subgraph_networks)):
-                try:
-                    graph = subgraph_networks[idx].graph
-                    self.subgraphs = split_population(graph)
-                    for subgraph in self.subgraphs:
-                        self.subgraph_network = ap.Network(self, subgraph)
-                        self.subgraph_network.add_agents(self.agents, self.subgraph_network.agents)
-                        self.subgraph_networks2[i][idx].append(self.subgraph_network)
-                except AttributeError:
-                    print("AttributeError occurred.")
-                    continue
+                graph = subgraph_networks[idx].graph
+                self.subgraphs = split_population(graph)
+                for subgraph in self.subgraphs:
+                    self.subgraph_network = ap.Network(self, subgraph)
+                    self.subgraph_network.add_agents(self.agents, self.subgraph_network.nodes)
+                    self.subgraph_networks2[i][idx].append(self.subgraph_network)
 
     def update(self):
         """
@@ -158,14 +169,34 @@ class LangChangeModel(ap.Model):
         if self.interaction <= 3:
             # Record average probability x after each simulation step
             average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-            self.record('average_updated_x', average_updated_x)
+            self.record('x', average_updated_x)
 
-        else:
+        if 3 < self.interaction <= 6:
             self.res = [[] for _ in range(len(self.subgraph_networks))]
             for i, subgraph in enumerate(self.subgraph_networks):
                 i, res = i, sum(subgraph.agents.updated_x) / len(subgraph.agents.updated_x)
                 self.res[i] = res
             self.record('x', self.res)
+
+        if 6 < self.interaction <= 9:
+            self.res = [[] for _ in range(len(list(self.subgraph_networks2.keys())))]
+            for i, subgraphs in self.subgraph_networks2.items():
+                for idx in range(len(subgraphs)):
+                    i, res = i, sum(subgraphs[idx].agents.updated_x) / len(subgraphs[idx].agents.updated_x)
+                    self.res[i].append(res)
+            self.record('x', self.res)
+
+        else:
+            result = []
+            for i, subgraphs in self.subgraph_networks2.items():
+                if subgraphs:
+                    self.res = [[None for _ in inner] for inner in subgraphs]
+                    for idx in range(len(subgraphs)):
+                        for sg in range(len(subgraphs[idx])):
+                            sg, res = sg, sum(subgraphs[idx][sg].agents.updated_x) / len(subgraphs[idx][sg].agents.updated_x)
+                            self.res[idx][sg] = res
+                    result.append(self.res)
+            self.record('x', result)
 
     def step(self):
         """
@@ -178,21 +209,72 @@ class LangChangeModel(ap.Model):
             if self.split == 0:
                 # Network split
                 self.split_network()
-                self.split += 1
-        if self.iteration == 6:
-            if self.split == 1:
-                self.split_network2()
-                self.split += 1
-        if self.iteration == 9:
-            if self.split == 2:
-                self.split_network3()
-                self.split += 1
-        if self.iteration == 12:
-            if self.split == 3:
-                self.split_network3()
+                self.iteration = 0
                 self.split += 1
 
-        if self.interaction >= 3:
+        if self.iteration == 3:
+            if self.split == 1:
+                self.split_network2()
+                self.iteration = 0
+                self.split += 1
+
+        if self.iteration == 3:
+            if self.split == 2:
+                self.split_network3()
+                self.iteration = 0
+                self.split += 1
+
+        if self.iteration == 3:
+            if self.split >= 3:
+                self.split_network3()
+                self.iteration = 0
+                self.split += 1
+
+        if self.interaction >= 9 and self.split >= 3:
+            self.interaction += 1
+            self.iteration += 1
+            for i, subgraphs in self.subgraph_networks2.items():
+                if subgraphs:
+                    for idx in range(len(subgraphs)):
+                        for sg in range(len(subgraphs[idx])):
+                            agent = self.random.choice(list(subgraphs[idx][sg].agents))
+                            neighbors = [j for j in subgraphs[idx][sg].neighbors(agent)]
+                            neighbor = self.random.choice(neighbors)
+
+                            agent.speak()
+                            neighbor.speak()
+
+                            agent.reinforce()
+                            neighbor.reinforce()
+
+                            agent.listen(neighbor)
+                            neighbor.listen(agent)
+
+                            agent.update()
+                            neighbor.update()
+
+        if 6 <= self.interaction < 9 and self.split == 2:
+            self.interaction += 1
+            self.iteration += 1
+            for i, subgraphs in self.subgraph_networks2.items():
+                for idx in range(len(subgraphs)):
+                    agent = self.random.choice(list(subgraphs[idx].agents))
+                    neighbors = [j for j in subgraphs[idx].neighbors(agent)]
+                    neighbor = self.random.choice(neighbors)
+
+                    agent.speak()
+                    neighbor.speak()
+
+                    agent.reinforce()
+                    neighbor.reinforce()
+
+                    agent.listen(neighbor)
+                    neighbor.listen(agent)
+
+                    agent.update()
+                    neighbor.update()
+
+        if 3 <= self.interaction < 6 and self.split == 1:
             self.interaction += 1
             self.iteration += 1
             for i, subgraph in enumerate(self.subgraph_networks):
@@ -256,4 +338,5 @@ parameters = {'agents': 100,
 
 model = LangChangeModel(parameters)
 results = model.run()
+print(results.save())
 print(results.variables.LangChangeModel)

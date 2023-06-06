@@ -3,8 +3,6 @@ import copy
 import agentpy as ap
 import numpy as np
 import networkx as nx
-from utils import replicator_selection
-from utils import interactor_selection
 from utils import batch_simulate
 import random
 

@@ -98,30 +98,14 @@ class LangChangeModel(ap.Model):
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
 
-    def update(self):
+    def action(self, agent, neighbor) -> None:
         """
-        Record variables after setup and each step
+        Definition of actions performed by agent and
+        its neighbor during one interaction
+        :param agent: agent
+        :param neighbor: neighbour
+        :return: None
         """
-
-        # Record average probability x after each simulation step
-        average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        self.record('average_updated_x', average_updated_x)
-
-    def step(self):
-        """
-        Choose two agents who are in a neighborhood
-        to each other to interact and perform the actions
-        of speaking, reinforcing, and listening
-        """
-
-        # Choose a random agent from agents
-        agent = self.random.choice(self.agents)
-
-        # Initialize neighbors
-        neighbors = [j for j in self.network.neighbors(agent)]
-
-        # Select one random neighbor
-        neighbor = self.random.choice(neighbors)
 
         agent.speak()
         neighbor.speak()
@@ -135,25 +119,58 @@ class LangChangeModel(ap.Model):
         agent.update()
         neighbor.update()
 
+    def update(self):
+        """
+        Record variables after setup and each step
+        """
+
+        # Record average probability x after each simulation step
+        average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
+        self.record('x', average_updated_x)
+
+    def step(self):
+        """
+        Choose two agents who are in a neighborhood
+        to each other to interact and perform the actions
+        of speaking, reinforcing, and listening
+        """
+
+        for t in range(self.p.time):
+            # Choose a random agent from agents
+            agent = self.random.choice(self.agents)
+
+            # Initialize neighbors
+            neighbors = [j for j in self.network.neighbors(agent)]
+
+            # Select one random neighbor
+            neighbor = self.random.choice(neighbors)
+
+            # Perform action
+            self.action(agent=agent, neighbor=neighbor)
+
     def end(self):
         """
         Record evaluation measures at the end of the simulation.
         """
         final_average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        self.report('Final_average_updated_x', final_average_updated_x)
+        self.report('final_x', final_average_updated_x)
 
 
 # Set up parameters for the model
-parameters = {'agents': 100,
-              'lingueme': ['v1', 'v2'],
+parameters = {'agents': ap.IntRange(50, 10000),
+              'lingueme': ('v1', 'v2'),
               'memory_size': 10,
               'initial_frequency': 0.5,
-              'number_of_neighbors': 5,
-              'network_density': 0.01,
-              'steps': 1000
+              'number_of_neighbors': 20,
+              'network_density': 0,
+              'time': 500,
+              'steps': 3000
               }
 
-# model = LangChangeModel(parameters)
-# results = model.run()
-# Run N number of simulations
-batch_simulate(num_sim=15, model=LangChangeModel, params=parameters)
+sample = ap.Sample(parameters=parameters, n=10)
+exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
+exp_results = exp.run(n_jobs=-1, verbose=10)
+exp_results.save()
+
+exit()
+batch_simulate(num_sim=3, model=LangChangeModel, params=parameters)
