@@ -160,9 +160,9 @@ class LangChangeModel(ap.Model):
 parameters = {'agents': ap.IntRange(50, 10000),
               'lingueme': ('v1', 'v2'),
               'memory_size': 10,
-              'initial_frequency': 0.5,
-              'number_of_neighbors': 20,
-              'network_density': 0,
+              'initial_frequency': 0.2,
+              'number_of_neighbors': 2,
+              'network_density': 0.01,
               'time': 500,
               'steps': 3000
               }
