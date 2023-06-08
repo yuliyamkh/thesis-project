@@ -4,6 +4,7 @@ import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
+from utils import replicator_selection
 
 
 class Agent(ap.Agent):
@@ -60,7 +61,6 @@ class Agent(ap.Agent):
         Listen to the neighbour to match more closely his behaviour
         Replacing the randomly removed token in the memory with the
         neighbour's sampled token
-        :param interactor_selection: True or False
         :param neighbour: one of the k agent's neighbours
         """
 
@@ -82,12 +82,16 @@ class Agent(ap.Agent):
                     # Append the neighbour's sampled token
                     self.memory = np.append(self.memory, neighbour.sampled_token)
 
+        if self.p.replicator_selection:
+            if neighbour.sampled_token == 'A':
+                self.x = replicator_selection(self.x, self.p.b)
+
     def update(self):
         """
         Record belief of choosing the innovative variant v1
         based on the updated memory
         """
-        self.updated_x = np.count_nonzero(self.memory == 'v1') / len(self.memory)
+        self.updated_x = np.count_nonzero(self.memory == 'A') / len(self.memory)
 
 
 class LangChangeModel(ap.Model):
@@ -186,11 +190,7 @@ class LangChangeModel(ap.Model):
         neutral change, interactor or replicator selection
         """
 
-        if self.p.neutral_change:
-            self.run_interactions()
-
-        if self.p.interactor_selection:
-            self.run_interactions()
+        self.run_interactions()
 
     def end(self):
         """
@@ -201,24 +201,28 @@ class LangChangeModel(ap.Model):
 
 
 # Set up parameters for the model
-parameters = {'agents': 100,
-              'lingueme': ('v1', 'v2'),
+parameters = {'agents': 50,
+              'lingueme': ('A', 'B'),
               'memory_size': 10,
               'initial_frequency': 0.2,
-              'number_of_neighbors': 8,
+              'number_of_neighbors': 20,
               'network_density': 0.01,
-              'interactor_selection': True,
-              'replicator_selection': False,
+              'interactor_selection': False,
+              'replicator_selection': True,
               'neutral_change': False,
               'n': 10,
+              'b': 0.001,
               'time': 500,
               'steps': 3000
               }
 
-batch_simulate(num_sim=3, model=LangChangeModel, params=parameters)
+batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
 exit()
 
 sample = ap.Sample(parameters=parameters, n=10)
 exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
 exp_results.save()
+exit()
+
+batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
