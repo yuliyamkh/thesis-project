@@ -66,7 +66,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
         model_i = model(params)
         results_i = model_i.run()
         data = results_i.variables.LangChangeModel
-        data['average_updated_x'].plot(linewidth=0.8)
+        data['x'].plot(linewidth=0.8)
 
     plt.ylim((0, 1))
     plt.xlabel('time')

@@ -64,12 +64,23 @@ class Agent(ap.Agent):
         :param neighbour: one of the k agent's neighbours
         """
 
-        # Choose a random index to remove
-        random_index = np.random.randint(len(self.memory))
-        # Remove the element at the random index
-        self.memory = np.delete(self.memory, random_index)
-        # Append the neighbour's sampled token
-        self.memory = np.append(self.memory, neighbour.sampled_token)
+        if self.p.neutral_change:
+            # Choose a random index to remove
+            random_index = np.random.randint(len(self.memory))
+            # Remove the element at the random index
+            self.memory = np.delete(self.memory, random_index)
+            # Append the neighbour's sampled token
+            self.memory = np.append(self.memory, neighbour.sampled_token)
+
+        if self.p.interactor_selection:
+            if self.id > self.p.n:
+                if neighbour.id <= self.p.n:
+                    # Choose a random index to remove
+                    random_index = np.random.randint(len(self.memory))
+                    # Remove the element at the random index
+                    self.memory = np.delete(self.memory, random_index)
+                    # Append the neighbour's sampled token
+                    self.memory = np.append(self.memory, neighbour.sampled_token)
 
     def update(self):
         """
@@ -94,9 +105,28 @@ class LangChangeModel(ap.Model):
         )
 
         # Create agents and network
+        # Mechanism: neutral change
         self.agents = ap.AgentList(self, self.p.agents, Agent)
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
+
+        # Change setup of agents
+        # Mechanism: interactor selection
+        if self.p.interactor_selection:
+            for agent in self.agents:
+                if agent.id <= self.p.n:
+                    agent.x = 1
+                    agent.memory = np.random.choice(self.p.lingueme,
+                                                    size=self.p.memory_size,
+                                                    p=[agent.x, 1-agent.x])
+                if agent.id > self.p.n:
+                    agent.x = 0
+                    agent.memory = np.random.choice(self.p.lingueme,
+                                                    size=self.p.memory_size,
+                                                    p=[agent.x, 1-agent.x])
+
+        # Change setup of agents
+        # Mechanism: replicator selection
 
     def action(self, agent, neighbor) -> None:
         """
@@ -119,20 +149,13 @@ class LangChangeModel(ap.Model):
         agent.update()
         neighbor.update()
 
-    def update(self):
+    def run_interactions(self):
         """
-        Record variables after setup and each step
-        """
-
-        # Record average probability x after each simulation step
-        average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        self.record('x', average_updated_x)
-
-    def step(self):
-        """
+        Run interactions between agents and their neighbours.
         Choose two agents who are in a neighborhood
         to each other to interact and perform the actions
         of speaking, reinforcing, and listening
+        :return: None
         """
 
         for t in range(self.p.time):
@@ -148,6 +171,27 @@ class LangChangeModel(ap.Model):
             # Perform action
             self.action(agent=agent, neighbor=neighbor)
 
+    def update(self):
+        """
+        Record variables after setup and each step
+        """
+
+        # Record average probability x after each simulation step
+        average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
+        self.record('x', average_updated_x)
+
+    def step(self):
+        """
+        Run interactions according to desired mechanism:
+        neutral change, interactor or replicator selection
+        """
+
+        if self.p.neutral_change:
+            self.run_interactions()
+
+        if self.p.interactor_selection:
+            self.run_interactions()
+
     def end(self):
         """
         Record evaluation measures at the end of the simulation.
@@ -157,20 +201,24 @@ class LangChangeModel(ap.Model):
 
 
 # Set up parameters for the model
-parameters = {'agents': ap.IntRange(50, 10000),
+parameters = {'agents': 100,
               'lingueme': ('v1', 'v2'),
               'memory_size': 10,
               'initial_frequency': 0.2,
-              'number_of_neighbors': 2,
+              'number_of_neighbors': 8,
               'network_density': 0.01,
+              'interactor_selection': False,
+              'replicator_selection': False,
+              'neutral_change': True,
+              'n': 10,
               'time': 500,
               'steps': 3000
               }
+
+batch_simulate(num_sim=3, model=LangChangeModel, params=parameters)
+exit()
 
 sample = ap.Sample(parameters=parameters, n=10)
 exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
 exp_results.save()
-
-exit()
-batch_simulate(num_sim=3, model=LangChangeModel, params=parameters)
