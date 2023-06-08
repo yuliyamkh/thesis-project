@@ -1,10 +1,13 @@
 # Model design
 import copy
+import random
+
 import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
 from utils import replicator_selection
+from utils import neutral_selection
 
 
 class Agent(ap.Agent):
@@ -16,16 +19,19 @@ class Agent(ap.Agent):
         before the simulation starts
         """
 
-        # Initial distribution of v1 and v2
+        # Initial distribution of A and B
         self.memory = np.random.choice(self.p.lingueme,
                                        size=self.p.memory_size,
                                        p=[self.p.initial_frequency, 1-self.p.initial_frequency])
 
-        # Probability of choosing the innovative variant v1
+        # Probability of choosing the innovative variant A
         self.x = self.p.initial_frequency
 
-        # Updated probability of choosing the innovative variant v1
+        # Updated probability of choosing the innovative variant A
         self.updated_x = copy.deepcopy(self.x)
+
+        # Frequency of A
+        self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
 
         # The produced token
         self.sampled_token = None
@@ -72,25 +78,44 @@ class Agent(ap.Agent):
             # Append the neighbour's sampled token
             self.memory = np.append(self.memory, neighbour.sampled_token)
 
-        if self.p.interactor_selection:
+        if self.p.replicator_selection and self.p.interactor_selection:
             if self.id > self.p.n:
                 if neighbour.id <= self.p.n:
-                    # Choose a random index to remove
-                    random_index = np.random.randint(len(self.memory))
-                    # Remove the element at the random index
-                    self.memory = np.delete(self.memory, random_index)
-                    # Append the neighbour's sampled token
-                    self.memory = np.append(self.memory, neighbour.sampled_token)
+                    if self.sampled_token == 'B' and neighbour.sampled_token == 'A':
+                        if random.random() < self.p.selection_pressure:
+                            # Choose a random index to remove
+                            random_index = np.random.randint(len(self.memory))
+                            # Remove the element at the random index
+                            self.memory = np.delete(self.memory, random_index)
+                            # Append the neighbour's sampled token
+                            self.memory = np.append(self.memory, neighbour.sampled_token)
+        else:
+            if self.p.interactor_selection:
+                if self.id > self.p.n:
+                    if neighbour.id <= self.p.n:
+                        # Choose a random index to remove
+                        random_index = np.random.randint(len(self.memory))
+                        # Remove the element at the random index
+                        self.memory = np.delete(self.memory, random_index)
+                        # Append the neighbour's sampled token
+                        self.memory = np.append(self.memory, neighbour.sampled_token)
 
-        if self.p.replicator_selection:
-            if neighbour.sampled_token == 'A':
-                self.x = replicator_selection(self.x, self.p.b)
+            if self.p.replicator_selection:
+                if self.sampled_token == 'B' and neighbour.sampled_token == 'A':
+                    if random.random() < self.p.selection_pressure:
+                        # Choose a random index to remove
+                        random_index = np.random.randint(len(self.memory))
+                        # Remove the element at the random index
+                        self.memory = np.delete(self.memory, random_index)
+                        # Append the neighbour's sampled token
+                        self.memory = np.append(self.memory, neighbour.sampled_token)
 
     def update(self):
         """
         Record belief of choosing the innovative variant v1
         based on the updated memory
         """
+        self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
         self.updated_x = np.count_nonzero(self.memory == 'A') / len(self.memory)
 
 
@@ -128,9 +153,6 @@ class LangChangeModel(ap.Model):
                     agent.memory = np.random.choice(self.p.lingueme,
                                                     size=self.p.memory_size,
                                                     p=[agent.x, 1-agent.x])
-
-        # Change setup of agents
-        # Mechanism: replicator selection
 
     def action(self, agent, neighbor) -> None:
         """
@@ -184,6 +206,10 @@ class LangChangeModel(ap.Model):
         average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
         self.record('x', average_updated_x)
 
+        # Record frequency of A
+        freq_a = sum(self.agents.A) / len(self.agents.A)
+        self.record('A', freq_a)
+
     def step(self):
         """
         Run interactions according to desired mechanism:
@@ -201,19 +227,19 @@ class LangChangeModel(ap.Model):
 
 
 # Set up parameters for the model
-parameters = {'agents': 50,
+parameters = {'agents': 10000,
               'lingueme': ('A', 'B'),
               'memory_size': 10,
-              'initial_frequency': 0.2,
-              'number_of_neighbors': 20,
+              'initial_frequency': 0.3,
+              'number_of_neighbors': 8,
               'network_density': 0.01,
               'interactor_selection': False,
               'replicator_selection': True,
               'neutral_change': False,
-              'n': 10,
-              'b': 0.001,
-              'time': 500,
-              'steps': 3000
+              'selection_pressure': 0.2,
+              'n': 50,
+              'time': 100,
+              'steps': 1000
               }
 
 batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
@@ -224,5 +250,3 @@ exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
 exp_results.save()
 exit()
-
-batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)

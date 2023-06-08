@@ -6,6 +6,18 @@ Helper functions
 """
 
 
+def neutral_selection(x: float, l: float, freq: float, freq_neighbour: float):
+
+    updated_x = x + l*freq + l*freq_neighbour / 1 + l + l
+
+    if updated_x < 0:
+        return 0
+    if updated_x > 1:
+        return 1
+    else:
+        return updated_x
+
+
 def replicator_selection(relative_freq_innovation: float, b: float) -> float:
     """
     Generate replicator selection
@@ -66,7 +78,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
         model_i = model(params)
         results_i = model_i.run()
         data = results_i.variables.LangChangeModel
-        data['x'].plot(linewidth=0.8)
+        data['A'].plot(linewidth=0.8)
 
     plt.ylim((0, 1))
     plt.xlabel('time')

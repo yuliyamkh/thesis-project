@@ -1,6 +1,34 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
+Graph = nx.watts_strogatz_graph(30, 2, 0.5)
+
+def recursive_partition(G, min_nodes=10, parent=None, partition_tree=None):
+    if partition_tree is None:
+        partition_tree = {}
+
+    if len(G.nodes) <= min_nodes:
+        partition_tree[parent] = [G]
+        return partition_tree
+    else:
+        partition = nx.algorithms.community.kernighan_lin.kernighan_lin_bisection(G)
+        subgraphs = [G.subgraph(nodes) for nodes in partition]
+        partition_tree[parent] = subgraphs
+
+        for subgraph in subgraphs:
+            recursive_partition(subgraph, min_nodes, parent=subgraph, partition_tree=partition_tree)
+
+        return partition_tree
+
+
+tr = recursive_partition(Graph)
+for key, val in tr.items():
+    for el in val:
+        print(key, el.nodes())
+
+exit()
+
 n = 10    # Number of nodes
 k = 6  # Each node is connected to k nearest neighbors
 rewiring_probs = [0, 0.1, 0.3, 0.5, 0.7, 1]
