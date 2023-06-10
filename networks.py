@@ -2,16 +2,35 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-Graph = nx.watts_strogatz_graph(30, 2, 0.5)
+Graph = nx.watts_strogatz_graph(100, 2, 0.5)
+
+
+def connect_new_nodes(graph, new_nodes):
+    # Get the existing nodes before the new nodes were added
+    existing_nodes = list(set(graph.nodes) - set(new_nodes))
+
+    # Iterate through the new nodes
+    for new_node in new_nodes:
+        # Connect the new node to all existing nodes
+        for existing_node in existing_nodes:
+            graph.add_edge(new_node, existing_node)
+
+
+def add_new_nodes(graph, num_nodes):
+    # Find the current highest node number in the graph
+    max_node = max(graph.nodes)
+
+    # Add new nodes with increasing numbers
+    new_nodes = range(max_node + 1, max_node + 1 + num_nodes)
+    connect_new_nodes(graph, new_nodes)
+    # graph.add_nodes_from(new_nodes)
+
 
 def recursive_partition(G, min_nodes=10, parent=None, partition_tree=None):
     if partition_tree is None:
         partition_tree = {}
 
-    if len(G.nodes) <= min_nodes:
-        partition_tree[parent] = [G]
-        return partition_tree
-    else:
+    if len(G.nodes) > min_nodes:
         partition = nx.algorithms.community.kernighan_lin.kernighan_lin_bisection(G)
         subgraphs = [G.subgraph(nodes) for nodes in partition]
         partition_tree[parent] = subgraphs
@@ -23,10 +42,60 @@ def recursive_partition(G, min_nodes=10, parent=None, partition_tree=None):
 
 
 tr = recursive_partition(Graph)
-for key, val in tr.items():
-    for el in val:
-        print(key, el.nodes())
 
+
+class TreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def __repr__(self, level=0):
+        ret = "\t" * level + repr(self.data) + "\n"
+        for child in self.children:
+            ret += child.__repr__(level + 1)
+        return ret
+
+
+root = TreeNode(list(Graph.nodes()))
+graph_1 = TreeNode(list(tr[None][0].nodes()))
+graph_2 = TreeNode(list(tr[None][1].nodes()))
+
+root.add_child(graph_1)
+root.add_child(graph_2)
+
+graph_1_1 = TreeNode(list(tr[tr[None][0]][0].nodes()))
+graph_1_2 = TreeNode(list(tr[tr[None][0]][1].nodes()))
+
+graph_1.add_child(graph_1_1)
+graph_1.add_child(graph_1_2)
+
+graph_2_1 = TreeNode(list(tr[tr[None][1]][0].nodes()))
+graph_2_2 = TreeNode(list(tr[tr[None][0]][1].nodes()))
+
+graph_2.add_child(graph_2_1)
+graph_2.add_child(graph_2_2)
+
+print(root)
+exit()
+
+from graphviz import Digraph
+
+def visualize_tree(node, graph=None):
+    if graph is None:
+        graph = Digraph('G', filename='tree.gv')
+        graph.node(str(id(node)), str(node.data))
+
+    for child in node.children:
+        graph.node(str(id(child)), str(child.data))
+        graph.edge(str(id(node)), str(id(child)))
+        visualize_tree(child, graph)
+
+    return graph
+
+print(visualize_tree(root).view())
 exit()
 
 n = 10    # Number of nodes

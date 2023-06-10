@@ -6,18 +6,6 @@ Helper functions
 """
 
 
-def neutral_selection(x: float, l: float, freq: float, freq_neighbour: float):
-
-    updated_x = x + l*freq + l*freq_neighbour / 1 + l + l
-
-    if updated_x < 0:
-        return 0
-    if updated_x > 1:
-        return 1
-    else:
-        return updated_x
-
-
 def replicator_selection(relative_freq_innovation: float, b: float) -> float:
     """
     Generate replicator selection

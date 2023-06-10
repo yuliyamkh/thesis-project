@@ -6,8 +6,6 @@ import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
-from utils import replicator_selection
-from utils import neutral_selection
 
 
 class Agent(ap.Agent):
@@ -127,6 +125,8 @@ class LangChangeModel(ap.Model):
         the network in which they exist and interact
         """
 
+        self.iteration = 0
+
         graph = nx.watts_strogatz_graph(
             self.p.agents,
             self.p.number_of_neighbors,
@@ -138,6 +138,9 @@ class LangChangeModel(ap.Model):
         self.agents = ap.AgentList(self, self.p.agents, Agent)
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
+
+        # Initialize the list of networks with the initial network
+        self.networks = [self.network]
 
         # Change setup of agents
         # Mechanism: interactor selection
@@ -153,6 +156,20 @@ class LangChangeModel(ap.Model):
                     agent.memory = np.random.choice(self.p.lingueme,
                                                     size=self.p.memory_size,
                                                     p=[agent.x, 1-agent.x])
+
+    def partition_network(self, network):
+
+        # Apply the Kernighan-Lin algorithm to the network
+        partition = nx.community.kernighan_lin_bisection(network.graph)
+
+        # Create new subnetworks for the partitioned communities
+        subnetworks = [ap.Network(self, network.graph.subgraph(nodes)) for nodes in partition]
+
+        # Add agents to the subnetworks
+        for subnetwork in subnetworks:
+            subnetwork.add_agents(self.agents, subnetwork.nodes)
+
+        return subnetworks
 
     def action(self, agent, neighbor) -> None:
         """
@@ -175,7 +192,7 @@ class LangChangeModel(ap.Model):
         agent.update()
         neighbor.update()
 
-    def run_interactions(self):
+    def run_interactions(self, network):
         """
         Run interactions between agents and their neighbours.
         Choose two agents who are in a neighborhood
@@ -186,10 +203,10 @@ class LangChangeModel(ap.Model):
 
         for t in range(self.p.time):
             # Choose a random agent from agents
-            agent = self.random.choice(self.agents)
+            agent = self.random.choice(network.agents.to_list())
 
             # Initialize neighbors
-            neighbors = [j for j in self.network.neighbors(agent)]
+            neighbors = [j for j in network.neighbors(agent)]
 
             # Select one random neighbor
             neighbor = self.random.choice(neighbors)
@@ -201,14 +218,17 @@ class LangChangeModel(ap.Model):
         """
         Record variables after setup and each step
         """
+        for network in self.networks:
+            # Record average probability x after each simulation step
+            average_updated_x = sum(agent.updated_x for agent in network.agents) / len(network.agents)
+            self.record(f'x_{network.id}', average_updated_x)
 
-        # Record average probability x after each simulation step
-        average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        self.record('x', average_updated_x)
+            # Record frequency of A
+            freq_a = sum(agent.A for agent in network.agents) / len(network.agents)
+            self.record(f'A_{network.id}', freq_a)
 
-        # Record frequency of A
-        freq_a = sum(self.agents.A) / len(self.agents.A)
-        self.record('A', freq_a)
+            # Record the network id
+            self.record(f'net_{network.id}', network.id)
 
     def step(self):
         """
@@ -216,7 +236,24 @@ class LangChangeModel(ap.Model):
         neutral change, interactor or replicator selection
         """
 
-        self.run_interactions()
+        # Define interactions between agents within each network
+        for network in self.networks:
+            self.run_interactions(network)
+
+        self.iteration += 1
+
+        # Check if the desired number of interactions has occurred
+        if self.iteration == 5:
+            self.iteration = 0
+            # Partition the networks and update the list of networks
+            new_networks = []
+            for network in self.networks:
+                new_networks.extend(self.partition_network(network))
+            self.networks = new_networks
+
+        # Check if the smallest network has reached 10 nodes
+        if min([len(subnet.agents) for subnet in self.networks]) <= 10:
+            self.stop()
 
     def end(self):
         """
@@ -227,26 +264,31 @@ class LangChangeModel(ap.Model):
 
 
 # Set up parameters for the model
-parameters = {'agents': 10000,
+parameters = {'agents': 50,
               'lingueme': ('A', 'B'),
               'memory_size': 10,
               'initial_frequency': 0.3,
               'number_of_neighbors': 8,
               'network_density': 0.01,
               'interactor_selection': False,
-              'replicator_selection': True,
-              'neutral_change': False,
-              'selection_pressure': 0.2,
+              'replicator_selection': False,
+              'neutral_change': True,
+              'selection_pressure': 0.1,
               'n': 50,
               'time': 100,
-              'steps': 1000
+              'steps': 100
               }
+
+model = LangChangeModel(parameters)
+results = model.run()
+print(results.variables.LangChangeModel[['x_54', 'A_54', 'net_54']].dropna())
+exit()
 
 batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
 exit()
 
-sample = ap.Sample(parameters=parameters, n=10)
-exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
+sample = ap.Sample(parameters=parameters, n=40)
+exp = ap.Experiment(LangChangeModel, sample=sample, iterations=5, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
 exp_results.save()
 exit()
