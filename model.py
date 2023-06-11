@@ -1,11 +1,32 @@
 # Model design
 import copy
 import random
-
 import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
+import treelib
+import subprocess
+
+
+def build_tree(hierarchy):
+    """
+    Build a tree from the hierarchy of different populations
+    :param hierarchy: dict: {parent: children}
+    :return: tree
+    """
+
+    tree = treelib.Tree()
+
+    # Create nodes for all networks
+    for parent, children in hierarchy.items():
+        if not tree.contains(parent):
+            tree.create_node(parent, parent)
+
+        for child in children:
+            tree.create_node(child, child, parent=parent)
+
+    return tree
 
 
 class Agent(ap.Agent):
@@ -125,6 +146,8 @@ class LangChangeModel(ap.Model):
         the network in which they exist and interact
         """
 
+        self.partition_hierarchy = {}
+        self.record_data = True
         self.iteration = 0
 
         graph = nx.watts_strogatz_graph(
@@ -164,6 +187,9 @@ class LangChangeModel(ap.Model):
 
         # Create new subnetworks for the partitioned communities
         subnetworks = [ap.Network(self, network.graph.subgraph(nodes)) for nodes in partition]
+
+        # Update the partition hierarchy
+        self.partition_hierarchy[network.id] = [subnetwork.id for subnetwork in subnetworks]
 
         # Add agents to the subnetworks
         for subnetwork in subnetworks:
@@ -218,17 +244,17 @@ class LangChangeModel(ap.Model):
         """
         Record variables after setup and each step
         """
-        for network in self.networks:
-            # Record average probability x after each simulation step
-            average_updated_x = sum(agent.updated_x for agent in network.agents) / len(network.agents)
-            self.record(f'x_{network.id}', average_updated_x)
 
-            # Record frequency of A
-            freq_a = sum(agent.A for agent in network.agents) / len(network.agents)
-            self.record(f'A_{network.id}', freq_a)
+        if self.record_data:
+            for network in self.networks:
+                # Record average probability x after each simulation step
+                # average_updated_x = sum(agent.updated_x for agent in network.agents) / len(network.agents)
 
-            # Record the network id
-            self.record(f'net_{network.id}', network.id)
+                # Record frequency of A
+                freq_a = sum(agent.A for agent in network.agents) / len(network.agents)
+
+                # Record the data using self.record()
+                self.record(network.id, freq_a)
 
     def step(self):
         """
@@ -243,7 +269,7 @@ class LangChangeModel(ap.Model):
         self.iteration += 1
 
         # Check if the desired number of interactions has occurred
-        if self.iteration == 5:
+        if self.iteration == 10:
             self.iteration = 0
             # Partition the networks and update the list of networks
             new_networks = []
@@ -253,6 +279,7 @@ class LangChangeModel(ap.Model):
 
         # Check if the smallest network has reached 10 nodes
         if min([len(subnet.agents) for subnet in self.networks]) <= 10:
+            self.record_data = False
             self.stop()
 
     def end(self):
@@ -261,10 +288,11 @@ class LangChangeModel(ap.Model):
         """
         final_average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
         self.report('final_x', final_average_updated_x)
+        self.report('partition_hierarchy', self.partition_hierarchy)
 
 
 # Set up parameters for the model
-parameters = {'agents': 50,
+parameters = {'agents': 100,
               'lingueme': ('A', 'B'),
               'memory_size': 10,
               'initial_frequency': 0.3,
@@ -276,12 +304,25 @@ parameters = {'agents': 50,
               'selection_pressure': 0.1,
               'n': 50,
               'time': 100,
-              'steps': 100
+              'steps': 1000
               }
 
 model = LangChangeModel(parameters)
 results = model.run()
-print(results.variables.LangChangeModel[['x_54', 'A_54', 'net_54']].dropna())
+
+model_results = results.variables.LangChangeModel
+column_names = model_results.columns.tolist()
+for column_name in column_names:
+    print(f'Population: {column_name}\n',
+          model_results[column_name].dropna(),
+          "\n\n")
+
+# Visualize tree of different populations
+partition_hierarchy = results.reporters["partition_hierarchy"].to_dict()[0]
+tree = build_tree(partition_hierarchy)
+tree.show()
+tree.to_graphviz('populations.dot')
+subprocess.call(["dot", "-Tpng", "populations.dot", "-o", "populations.png"])
 exit()
 
 batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
