@@ -1,9 +1,30 @@
 import matplotlib.pyplot as plt
 from typing import Type, Any
+import treelib
 
 """
 Helper functions
 """
+
+
+def build_tree(hierarchy):
+    """
+    Build a tree from the hierarchy of different populations
+    :param hierarchy: dict: {parent: children}
+    :return: tree
+    """
+
+    tree = treelib.Tree()
+
+    # Create nodes for all networks
+    for parent, children in hierarchy.items():
+        if not tree.contains(parent):
+            tree.create_node(parent, parent)
+
+        for child in children:
+            tree.create_node(child, child, parent=parent)
+
+    return tree
 
 
 def replicator_selection(relative_freq_innovation: float, b: float) -> float:

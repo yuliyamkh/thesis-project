@@ -5,28 +5,8 @@ import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
-import treelib
+from utils import build_tree
 import subprocess
-
-
-def build_tree(hierarchy):
-    """
-    Build a tree from the hierarchy of different populations
-    :param hierarchy: dict: {parent: children}
-    :return: tree
-    """
-
-    tree = treelib.Tree()
-
-    # Create nodes for all networks
-    for parent, children in hierarchy.items():
-        if not tree.contains(parent):
-            tree.create_node(parent, parent)
-
-        for child in children:
-            tree.create_node(child, child, parent=parent)
-
-    return tree
 
 
 class Agent(ap.Agent):
@@ -321,8 +301,8 @@ for column_name in column_names:
 partition_hierarchy = results.reporters["partition_hierarchy"].to_dict()[0]
 tree = build_tree(partition_hierarchy)
 tree.show()
-tree.to_graphviz('populations.dot')
-subprocess.call(["dot", "-Tpng", "populations.dot", "-o", "populations.png"])
+# tree.to_graphviz('populations.dot')
+# subprocess.call(["dot", "-Tpng", "populations.dot", "-o", "populations.png"])
 exit()
 
 batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
