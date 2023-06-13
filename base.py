@@ -1,23 +1,10 @@
 # Model design
-import copy
 import random
 import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
-from utils import build_tree
-# import subprocess
-from ete3 import Tree
-from treelib import Tree as TreelibTree
 
-
-def treelib_to_ete3(treelib_tree, treelib_node):
-    ete3_node = Tree(name=treelib_node.identifier)
-    children = treelib_tree.children(treelib_node.identifier)
-    for child in children:
-        ete3_child = treelib_to_ete3(treelib_tree, child)
-        ete3_node.add_child(ete3_child)
-    return ete3_node
 
 class Agent(ap.Agent):
 
@@ -33,14 +20,11 @@ class Agent(ap.Agent):
                                        size=self.p.memory_size,
                                        p=[self.p.initial_frequency, 1-self.p.initial_frequency])
 
-        # Probability of choosing the innovative variant A
-        self.x = self.p.initial_frequency
-
-        # Updated probability of choosing the innovative variant A
-        self.updated_x = copy.deepcopy(self.x)
-
         # Frequency of A
         self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
+
+        # Usage frequency x
+        self.x = self.A
 
         # The produced token
         self.sampled_token = None
@@ -51,8 +35,7 @@ class Agent(ap.Agent):
         based on the usage frequency x
         """
 
-        self.sampled_token = np.random.choice(self.p.lingueme,
-                                              size=1)[0]
+        self.sampled_token = np.random.choice(self.p.lingueme, size=1)[0]
 
     def reinforce(self) -> None:
         """
@@ -60,15 +43,47 @@ class Agent(ap.Agent):
         removed token in the memory with the sampled
         token's copy
         """
+        if self.p.neutral_change:
+            # Choose a random index to remove
+            random_index = np.random.randint(len(self.memory))
 
-        # Choose a random index to remove
-        random_index = np.random.randint(len(self.memory))
+            # Remove the element at the random index
+            self.memory = np.delete(self.memory, random_index)
 
-        # Remove the element at the random index
-        self.memory = np.delete(self.memory, random_index)
+            # Append the sampled token
+            self.memory = np.append(self.memory, self.sampled_token)
 
-        # Append the sampled token
-        self.memory = np.append(self.memory, self.sampled_token)
+        if self.p.replicator_selection and self.p.interactor_selection:
+            if self.id < self.p.n:
+                if self.sampled_token == 'A':
+                    if random.random() < self.p.selection_pressure:
+                        # Choose a random index to remove
+                        random_index = np.random.randint(len(self.memory))
+                        # Remove the element at the random index
+                        self.memory = np.delete(self.memory, random_index)
+                        # Append the neighbour's sampled token
+                        self.memory = np.append(self.memory, self.sampled_token)
+
+        else:
+            if self.p.replicator_selection:
+                if self.sampled_token == 'A':
+                    if random.random() < self.p.selection_pressure:
+                        # Choose a random index to remove
+                        random_index = np.random.randint(len(self.memory))
+                        # Remove the element at the random index
+                        self.memory = np.delete(self.memory, random_index)
+                        # Append the neighbour's sampled token
+                        self.memory = np.append(self.memory, self.sampled_token)
+
+            if self.p.interactor_selection:
+                if self.id < self.p.n:
+                    if random.random() < self.p.selection_pressure:
+                        # Choose a random index to remove
+                        random_index = np.random.randint(len(self.memory))
+                        # Remove the element at the random index
+                        self.memory = np.delete(self.memory, random_index)
+                        # Append the neighbour's sampled token
+                        self.memory = np.append(self.memory, self.sampled_token)
 
     def listen(self, neighbour) -> None:
         """
@@ -98,15 +113,27 @@ class Agent(ap.Agent):
                             # Append the neighbour's sampled token
                             self.memory = np.append(self.memory, neighbour.sampled_token)
         else:
+            if self.p.interactor_selection_2:
+                if self.id > self.p.n:
+                    if neighbour.id <= self.p.n:
+                        if random.random() < self.p.selection_pressure:
+                            # Choose a random index to remove
+                            random_index = np.random.randint(len(self.memory))
+                            # Remove the element at the random index
+                            self.memory = np.delete(self.memory, random_index)
+                            # Append the neighbour's sampled token
+                            self.memory = np.append(self.memory, neighbour.sampled_token)
+
             if self.p.interactor_selection:
                 if self.id > self.p.n:
                     if neighbour.id <= self.p.n:
-                        # Choose a random index to remove
-                        random_index = np.random.randint(len(self.memory))
-                        # Remove the element at the random index
-                        self.memory = np.delete(self.memory, random_index)
-                        # Append the neighbour's sampled token
-                        self.memory = np.append(self.memory, neighbour.sampled_token)
+                        if random.random() < self.p.selection_pressure:
+                            # Choose a random index to remove
+                            random_index = np.random.randint(len(self.memory))
+                            # Remove the element at the random index
+                            self.memory = np.delete(self.memory, random_index)
+                            # Append the neighbour's sampled token
+                            self.memory = np.append(self.memory, neighbour.sampled_token)
 
             if self.p.replicator_selection:
                 if self.sampled_token == 'B' and neighbour.sampled_token == 'A':
@@ -124,7 +151,7 @@ class Agent(ap.Agent):
         based on the updated memory
         """
         self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
-        self.updated_x = np.count_nonzero(self.memory == 'A') / len(self.memory)
+        self.x = self.A
 
 
 class LangChangeModel(ap.Model):
@@ -134,10 +161,6 @@ class LangChangeModel(ap.Model):
         Initialize a population of agents and
         the network in which they exist and interact
         """
-
-        self.partition_hierarchy = {}
-        self.record_data = True
-        self.iteration = 0
 
         graph = nx.watts_strogatz_graph(
             self.p.agents,
@@ -150,9 +173,6 @@ class LangChangeModel(ap.Model):
         self.agents = ap.AgentList(self, self.p.agents, Agent)
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
-
-        # Initialize the list of networks with the initial network
-        self.networks = [self.network]
 
         # Change setup of agents
         # Mechanism: interactor selection
@@ -168,23 +188,6 @@ class LangChangeModel(ap.Model):
                     agent.memory = np.random.choice(self.p.lingueme,
                                                     size=self.p.memory_size,
                                                     p=[agent.x, 1-agent.x])
-
-    def partition_network(self, network):
-
-        # Apply the Kernighan-Lin algorithm to the network
-        partition = nx.community.kernighan_lin_bisection(network.graph)
-
-        # Create new subnetworks for the partitioned communities
-        subnetworks = [ap.Network(self, network.graph.subgraph(nodes)) for nodes in partition]
-
-        # Update the partition hierarchy
-        self.partition_hierarchy[network.id] = [subnetwork.id for subnetwork in subnetworks]
-
-        # Add agents to the subnetworks
-        for subnetwork in subnetworks:
-            subnetwork.add_agents(self.agents, subnetwork.nodes)
-
-        return subnetworks
 
     def action(self, agent, neighbor) -> None:
         """
@@ -216,34 +219,31 @@ class LangChangeModel(ap.Model):
         :return: None
         """
 
-        for t in range(self.p.time):
-            # Choose a random agent from agents
-            agent = self.random.choice(network.agents.to_list())
+        # Choose a random agent from agents
+        agent = self.random.choice(network.agents.to_list())
 
-            # Initialize neighbors
-            neighbors = [j for j in network.neighbors(agent)]
+        # Initialize neighbors
+        neighbors = [j for j in network.neighbors(agent)]
 
-            # Select one random neighbor
-            neighbor = self.random.choice(neighbors)
+        # Select one random neighbor
+        neighbor = self.random.choice(neighbors)
 
-            # Perform action
-            self.action(agent=agent, neighbor=neighbor)
+        # Perform action
+        self.action(agent=agent, neighbor=neighbor)
 
     def update(self):
         """
         Record variables after setup and each step
         """
 
-        if self.record_data:
-            for network in self.networks:
-                # Record average probability x after each simulation step
-                # average_updated_x = sum(agent.updated_x for agent in network.agents) / len(network.agents)
+        # Record frequency of A
+        freq_a = sum(self.network.agents.A) / len(self.network.agents.A)
 
-                # Record frequency of A
-                freq_a = sum(agent.A for agent in network.agents) / len(network.agents)
+        x = sum(self.network.agents.x) / len(self.network.agents.x)
 
-                # Record the data using self.record()
-                self.record(network.id, freq_a)
+        # Record the data using self.record()
+        self.record('A', freq_a)
+        self.record('x', x)
 
     def step(self):
         """
@@ -251,83 +251,38 @@ class LangChangeModel(ap.Model):
         neutral change, interactor or replicator selection
         """
 
-        # Define interactions between agents within each network
-        for network in self.networks:
-            self.run_interactions(network)
-
-        self.iteration += 1
-
-        # Check if the desired number of interactions has occurred
-        if self.iteration == 10:
-            self.iteration = 0
-            # Partition the networks and update the list of networks
-            new_networks = []
-            for network in self.networks:
-                new_networks.extend(self.partition_network(network))
-            self.networks = new_networks
-
-        # Check if the smallest network has reached 10 nodes
-        if min([len(subnet.agents) for subnet in self.networks]) <= 10:
-            self.record_data = False
-            self.stop()
+        for t in range(self.p.time):
+            self.run_interactions(self.network)
 
     def end(self):
         """
         Record evaluation measures at the end of the simulation.
         """
-        final_average_updated_x = sum(self.agents.updated_x) / len(self.agents.updated_x)
-        self.report('final_x', final_average_updated_x)
-        self.report('partition_hierarchy', self.partition_hierarchy)
+        final_A = sum(self.network.agents.A) / len(self.network.agents.A)
+        self.report('final_x', final_A)
 
 
 # Set up parameters for the model
-parameters = {'agents': 100,
+parameters = {'agents': ap.IntRange(100, 1500),
               'lingueme': ('A', 'B'),
               'memory_size': 10,
-              'initial_frequency': 0.3,
+              'initial_frequency': 0.2,
               'number_of_neighbors': 8,
               'network_density': 0.01,
-              'interactor_selection': True,
-              'replicator_selection': True,
+              'interactor_selection': False,
+              'replicator_selection': False,
               'neutral_change': False,
-              'selection_pressure': 1,
-              'n': 2,
+              'interactor_selection_2': True,
+              'selection_pressure': 0.8,
+              'n': 20,
               'time': 100,
-              'steps': 400
+              'steps': 1000
               }
 
-model = LangChangeModel(parameters)
-results = model.run()
-
-model_results = results.variables.LangChangeModel
-column_names = model_results.columns.tolist()
-for column_name in column_names:
-    print(f'Population: {column_name}\n',
-          model_results[column_name].dropna(),
-          "\n\n")
-
-exit()
-
-# Visualize tree of different populations
-partition_hierarchy = results.reporters["partition_hierarchy"].to_dict()[0]
-tree = build_tree(partition_hierarchy)
-treelib_tree = tree
-root = treelib_tree.get_node(treelib_tree.root)
-ete3_tree = treelib_to_ete3(treelib_tree, root).write()
-with open("my_tree.newick", "w") as f:
-    f.write(ete3_tree)
-print(ete3_tree)
-exit()
-tree.show()
-# tree.to_graphviz('populations.dot')
-# subprocess.call(["dot", "-Tpng", "populations.dot", "-o", "populations.png"])
-exit()
-
-batch_simulate(num_sim=1, model=LangChangeModel, params=parameters)
-exit()
-
 sample = ap.Sample(parameters=parameters, n=40)
-exp = ap.Experiment(LangChangeModel, sample=sample, iterations=5, record=True)
+exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
 exp_results.save()
 exit()
+
+batch_simulate(num_sim=5, model=LangChangeModel, params=parameters)

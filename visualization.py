@@ -2,19 +2,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnchoredText
 
-results = pd.read_csv('ap_output/LangChangeModel_8/variables_LangChangeModel.csv')
-parameters_sample = pd.read_csv('ap_output/LangChangeModel_8/parameters_sample.csv')
+results = pd.read_csv('ap_output/LangChangeModel_12/variables_LangChangeModel.csv')
+parameters_sample = pd.read_csv('ap_output/LangChangeModel_12/parameters_sample.csv')
 parameters_sample_dict = parameters_sample.to_dict()['agents']
-parameter_constants = pd.read_json('ap_output/LangChangeModel_8/parameters_constants.json')
-reporters = pd.read_csv('ap_output/LangChangeModel_8/reporters.csv')
+parameter_constants = pd.read_json('ap_output/LangChangeModel_12/parameters_constants.json')
+reporters = pd.read_csv('ap_output/LangChangeModel_12/reporters.csv')
 
 population_sizes = []
 for sample_id in reporters.sample_id:
     population_sizes.append(parameters_sample_dict[sample_id])
-reporters['population_size'] = population_sizes
-reporters.to_csv('reporters/reporters_LangChangeModel_8')
-exit()
-
+# reporters['population_size'] = population_sizes
+# reporters.to_csv('reporters/reporters_LangChangeModel_12')
 
 parameter_constants = parameter_constants.drop(1)
 parameter_constants = parameter_constants.drop(columns='lingueme').to_dict()
@@ -71,7 +69,7 @@ for cluster in results.clusters.unique():
 
 plt.legend(fontsize=7)
 draw_text(ax=axes)
-plt.xlim(0, 5000)
+plt.xlim(0, 1000)
 plt.ylim((0, 1))
 plt.ylabel('innovation frequency, x', weight='bold')
 plt.xlabel('time, t', weight='bold')

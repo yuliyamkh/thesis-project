@@ -91,6 +91,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
 
     plt.ylim((0, 1))
     plt.xlabel('time')
+    plt.xlim((0, params['steps']))
 
     text = (f'agents = {params["agents"]}\n'
                          f'neighbors = {params["number_of_neighbors"]}\n'
