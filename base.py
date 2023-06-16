@@ -219,15 +219,19 @@ parameters = {'agents': 10,
               'network_density': 0.01,
               'interactor_selection': False,
               'replicator_selection': False,
-              'neutral_change': True,
+              'neutral_change': False,
               'selection_pressure': 0.8,
-              'n': 20,
-              'steps': 1000
+              'n': 2,
+              'steps': 10000
               }
 
+# Perform and plot a specific number of simulations
+# for one parameter set
 batch_simulate(num_sim=5, model=LangChangeModel, params=parameters)
 exit()
 
+# Perform experiment by running the model
+# for multiple iterations and parameter combinations
 sample = ap.Sample(parameters=parameters, n=40)
 exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
 exp_results = exp.run(n_jobs=-1, verbose=10)
