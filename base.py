@@ -11,8 +11,6 @@ class Agent(ap.Agent):
     def setup(self) -> None:
         """
         Set up initial states of an agent.
-        This method is called by the model during the setup phase,
-        before the simulation starts
         """
 
         # Initial distribution of linguistic variants A and B
@@ -28,8 +26,8 @@ class Agent(ap.Agent):
 
     def speak(self) -> None:
         """
-        Produce an utterance by sampling one token from the memory
-        based on the usage frequency x
+        Produce an utterance by randomly
+        sampling one token from the memory
         """
 
         self.sampled_token = np.random.choice(self.memory, size=1)[0]
@@ -37,8 +35,13 @@ class Agent(ap.Agent):
     def reinforce(self) -> None:
         """
         Reinforce the own behaviour replacing a randomly
-        removed token in the memory with the sampled
-        token's copy
+        removed token in the memory with the copy of
+        the sampled token
+
+        The reinforcement process is preformed according
+        to the three mechanisms of language change:
+        1. neutral change; 2. interactor selection, and
+        3. replicator selection
         """
 
         # Neutral mechanism
@@ -80,9 +83,14 @@ class Agent(ap.Agent):
     def listen(self, neighbour) -> None:
         """
         Listen to the neighbour to match more closely his behaviour
-        Replacing the randomly removed token in the memory with the
-        neighbour's sampled token
-        :param neighbour: one of the k agent's neighbours
+        by replacing the randomly removed token in the memory
+        with the token sampled by the neighbour
+
+        The process of listening is preformed according
+        to the three mechanisms of language change:
+        1. neutral change; 2. interactor selection, and
+        3. replicator selection
+        :param neighbour: one of the k neighbours of an agent
         """
 
         # Neutral mechanism
@@ -122,9 +130,9 @@ class Agent(ap.Agent):
                         # Replace with the token sampled by the neighbour
                         self.memory[random_index] = neighbour.sampled_token
 
-    def update(self):
+    def update(self) -> None:
         """
-        Record belief of choosing the innovative variant v1
+        Record the frequency of the innovative variant A
         based on the updated memory
         """
         self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
@@ -138,6 +146,7 @@ class LangChangeModel(ap.Model):
         the network in which they exist and interact
         """
 
+        # Initialize a graph
         graph = nx.watts_strogatz_graph(
             self.p.agents,
             self.p.number_of_neighbors,
@@ -145,74 +154,78 @@ class LangChangeModel(ap.Model):
         )
 
         # Create agents and network
-        # Mechanism: neutral change
         self.agents = ap.AgentList(self, self.p.agents, Agent)
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
 
-    def update(self):
+    def update(self) -> None:
         """
-        Record variables after setup and each step
+        Record the average frequency of the innovative
+        variant A after setup and each step
         """
 
-        # Record average frequency of A
         average_A = sum(self.agents.A) / len(self.agents.A)
         self.record('A', average_A)
 
-    def step(self):
+    def step(self) -> None:
         """
-        Run interactions according to desired mechanism:
-        neutral change, interactor or replicator selection
-        """
+        Before the interaction starts, one agent is randomly
+        sampled from the network. Next, another agent, the
+        interlocutor, is randomly sampled from its neighborhood.
 
-        for t in range(self.p.time):
-            # Choose a random agent from agents
-            agent = self.random.choice(self.agents)
-            # Initialize neighbors
-            neighbors = [j for j in self.network.neighbors(agent)]
-            # Select one random neighbor
-            neighbor = self.random.choice(neighbors)
-
-            # Perform action
-            agent.speak()
-            neighbor.speak()
-
-            agent.reinforce()
-            neighbor.reinforce()
-
-            agent.listen(neighbor)
-            neighbor.listen(agent)
-
-            agent.update()
-            neighbor.update()
-
-    def end(self):
-        """
-        Record evaluation measures at the end of the simulation.
+        During the interaction, each of the two agents produces
+        a linguistic variant A or B, reinforces its own behaviour,
+        copies the behaviour of the neighbour, and updates its
+        frequency of using the innovative variant A based on its
+        updated memory
         """
 
-        # Report final average frequency of A
+        # Choose a random agent from agents
+        agent = self.random.choice(self.agents)
+        # Initialize neighbors
+        neighbors = [j for j in self.network.neighbors(agent)]
+        # Select one random neighbor
+        neighbor = self.random.choice(neighbors)
+
+        # Perform actions during the interaction
+        agent.speak()
+        neighbor.speak()
+
+        agent.reinforce()
+        neighbor.reinforce()
+
+        agent.listen(neighbor)
+        neighbor.listen(agent)
+
+        agent.update()
+        neighbor.update()
+
+    def end(self) -> None:
+        """
+        Report final average frequency of A
+        at the end of the simulation.
+        """
+
         final_average_A = sum(self.agents.A) / len(self.agents.A)
         self.report('final_A', final_average_A)
 
 
 # Parameters setup
-parameters = {'agents': 100,
+parameters = {'agents': 10,
               'lingueme': ('A', 'B'),
               'memory_size': 10,
-              'initial_frequency': 0.5,
+              'initial_frequency': 0.2,
               'number_of_neighbors': 4,
               'network_density': 0.01,
               'interactor_selection': False,
-              'replicator_selection': True,
-              'neutral_change': False,
+              'replicator_selection': False,
+              'neutral_change': True,
               'selection_pressure': 0.8,
               'n': 20,
-              'time': 100,
               'steps': 1000
               }
 
-batch_simulate(num_sim=15, model=LangChangeModel, params=parameters)
+batch_simulate(num_sim=5, model=LangChangeModel, params=parameters)
 exit()
 
 sample = ap.Sample(parameters=parameters, n=40)
