@@ -95,7 +95,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
 
     text = (f'agents = {params["agents"]}\n'
                          f'neighbors = {params["number_of_neighbors"]}\n'
-                         f'network = {params["network_density"]}\n'
+                         f'network = {params["rewiring_probability"]}\n'
                          f'steps = {params["steps"]}\n'
                          f'simulations = {num_sim}')
 
