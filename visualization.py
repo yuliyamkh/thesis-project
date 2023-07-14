@@ -2,17 +2,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnchoredText
 
-results = pd.read_csv('ap_output/LangChangeModel_12/variables_LangChangeModel.csv')
-parameters_sample = pd.read_csv('ap_output/LangChangeModel_12/parameters_sample.csv')
+results = pd.read_csv('output/Neutral_change_1/variables_LangChangeModel.csv')
+parameters_sample = pd.read_csv('output/Neutral_change_1/parameters_sample.csv')
 parameters_sample_dict = parameters_sample.to_dict()['agents']
-parameter_constants = pd.read_json('ap_output/LangChangeModel_12/parameters_constants.json')
-reporters = pd.read_csv('ap_output/LangChangeModel_12/reporters.csv')
+parameter_constants = pd.read_json('output/Neutral_change_1/parameters_constants.json')
+reporters = pd.read_csv('output/Neutral_change_1/reporters.csv')
 
 population_sizes = []
 for sample_id in reporters.sample_id:
     population_sizes.append(parameters_sample_dict[sample_id])
-# reporters['population_size'] = population_sizes
-# reporters.to_csv('reporters/reporters_LangChangeModel_12')
+reporters['population_size'] = population_sizes
+reporters.to_csv('reporters/Neutral_change_1')
 
 parameter_constants = parameter_constants.drop(1)
 parameter_constants = parameter_constants.drop(columns='lingueme').to_dict()
@@ -51,7 +51,7 @@ results['clusters'] = [clusters[sample_id] for sample_id in results.sample_id]
 
 fig, axes = plt.subplots()
 
-data = results.groupby(['clusters', 'sample_id', 'iteration'])['x']
+data = results.groupby(['clusters', 'sample_id', 'iteration'])['A']
 group_names = [name for name, group in data]
 
 for cluster in results.clusters.unique():
