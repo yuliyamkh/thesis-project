@@ -24,6 +24,9 @@ class Agent(ap.Agent):
         # The produced token
         self.sampled_token = None
 
+        # The ratio of leaders
+        self.n = int(self.p.agents * self.p.n)
+
     def speak(self) -> None:
         """
         Produce an utterance by randomly
@@ -53,7 +56,7 @@ class Agent(ap.Agent):
 
         # Replicator selection and interactor selection mechanisms
         if self.p.replicator_selection and self.p.interactor_selection:
-            if self.id < self.p.n:
+            if self.id < self.n:
                 if self.sampled_token == 'A':
                     if random.random() < self.p.selection_pressure:
                         # Choose a random index to remove
@@ -73,7 +76,7 @@ class Agent(ap.Agent):
 
             # Interactor selection
             if self.p.interactor_selection:
-                if self.id < self.p.n:
+                if self.id < self.n:
                     if random.random() < self.p.selection_pressure:
                         # Choose a random index to remove
                         random_index = np.random.randint(len(self.memory))
@@ -102,8 +105,8 @@ class Agent(ap.Agent):
 
         # Replicator selection and interactor selection
         if self.p.replicator_selection and self.p.interactor_selection:
-            if self.id > self.p.n:
-                if neighbour.id <= self.p.n:
+            if self.id > self.n:
+                if neighbour.id <= self.n:
                     if neighbour.sampled_token == 'A':
                         if random.random() < self.p.selection_pressure:
                             # Choose a random index to remove
@@ -113,8 +116,8 @@ class Agent(ap.Agent):
         else:
             # Interactor selection
             if self.p.interactor_selection:
-                if self.id > self.p.n:
-                    if neighbour.id <= self.p.n:
+                if self.id > self.n:
+                    if neighbour.id <= self.n:
                         if random.random() < self.p.selection_pressure:
                             # Choose a random index to remove
                             random_index = np.random.randint(len(self.memory))
@@ -219,11 +222,11 @@ if __name__ == '__main__':
                   'initial_frequency': 0.2,
                   'number_of_neighbors': 4,
                   'rewiring_probability': 0.01,
-                  'interactor_selection': False,
+                  'interactor_selection': True,
                   'replicator_selection': False,
-                  'neutral_change': True,
+                  'neutral_change': False,
                   'selection_pressure': 0.8,
-                  'n': 2,
+                  'n': 0.3,
                   'steps': 1000
                   }
 
