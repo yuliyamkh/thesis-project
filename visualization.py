@@ -2,17 +2,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnchoredText
 
-results = pd.read_csv('output/Interactor_selection_1/variables_LangChangeModel.csv')
-parameters_sample = pd.read_csv('output/Interactor_selection_1/parameters_sample.csv')
+results = pd.read_csv('output/Interactor_selection_2/variables_LangChangeModel.csv')
+parameters_sample = pd.read_csv('output/Interactor_selection_2/parameters_sample.csv')
 parameters_sample_dict = parameters_sample.to_dict()['agents']
-parameter_constants = pd.read_json('output/Interactor_selection_1/parameters_constants.json')
-reporters = pd.read_csv('output/Interactor_selection_1/reporters.csv')
+parameter_constants = pd.read_json('output/Interactor_selection_2/parameters_constants.json')
+reporters = pd.read_csv('output/Interactor_selection_2/reporters.csv')
 
 population_sizes = []
 for sample_id in reporters.sample_id:
     population_sizes.append(parameters_sample_dict[sample_id])
 reporters['population_size'] = population_sizes
-reporters.to_csv('reporters/Interactor_selection_1')
+reporters.to_csv('reporters/Interactor_selection_2')
 
 parameter_constants = parameter_constants.drop(1)
 parameter_constants = parameter_constants.drop(columns='lingueme').to_dict()

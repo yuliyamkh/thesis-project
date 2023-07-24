@@ -126,7 +126,7 @@ class Agent(ap.Agent):
 
             # Replicator selection
             if self.p.replicator_selection:
-                if neighbour.sampled_token == 'A':
+                if self.sampled_token == 'B' and neighbour.sampled_token == 'A':
                     if random.random() < self.p.selection_pressure:
                         # Choose a random index to remove
                         random_index = np.random.randint(len(self.memory))
@@ -160,6 +160,15 @@ class LangChangeModel(ap.Model):
         self.agents = ap.AgentList(self, self.p.agents, Agent)
         self.network = self.agents.network = ap.Network(self, graph)
         self.network.add_agents(self.agents, self.network.nodes)
+
+        # Change setup of agents
+        # Mechanism: interactor selection
+        if self.p.interactor_selection:
+            for agent in self.agents:
+                if agent.id <= agent.n:
+                    agent.memory = np.random.choice(self.p.lingueme,
+                                                    size=self.p.memory_size,
+                                                    p=[1, 0])
 
     def update(self) -> None:
         """
@@ -216,7 +225,7 @@ class LangChangeModel(ap.Model):
 if __name__ == '__main__':
 
     # Parameters setup
-    parameters = {'agents': 10,
+    parameters = {'agents': 1000,
                   'lingueme': ('A', 'B'),
                   'memory_size': 10,
                   'initial_frequency': 0.2,
@@ -226,8 +235,8 @@ if __name__ == '__main__':
                   'replicator_selection': False,
                   'neutral_change': False,
                   'selection_pressure': 0.8,
-                  'n': 0.3,
-                  'steps': 1000
+                  'n': 0.5,
+                  'steps': 10000
                   }
 
     # Perform and plot a specific number of simulations

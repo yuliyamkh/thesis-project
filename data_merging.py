@@ -61,4 +61,4 @@ def merge(mechanism_name: str):
     result.to_excel(os.path.join('output', f'{mechanism_name}_output.xlsx'))
 
 
-merge(mechanism_name='replicator_selection')
+merge(mechanism_name='neutral_change')
