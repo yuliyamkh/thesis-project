@@ -14,9 +14,7 @@ class Agent(ap.Agent):
         """
 
         # Initial distribution of linguistic variants A and B
-        self.memory = np.random.choice(self.p.lingueme,
-                                       size=self.p.memory_size,
-                                       p=[0, 1])
+        self.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[0, 1])
 
         # Frequency of A
         self.A = np.count_nonzero(self.memory == 'A') / len(self.memory)
@@ -193,13 +191,13 @@ if __name__ == '__main__':
     parameters = {'agents': 10,
                   'lingueme': ('A', 'B'),
                   'memory_size': 10,
-                  'initial_frequency': 0.5,
+                  'initial_frequency': 0.2,
                   'number_of_neighbors': 4,
                   'rewiring_probability': 0.01,
-                  'interactor_selection': True,
+                  'interactor_selection': False,
                   'replicator_selection': False,
-                  'neutral_change': False,
-                  'selection_pressure': 0.3,
+                  'neutral_change': True,
+                  'selection_pressure': 0.8,
                   'n': 0.2,
                   'leaders': None,
                   'steps': 1000
@@ -207,5 +205,5 @@ if __name__ == '__main__':
 
     # Perform and plot a specific number of simulations
     # for one parameter set
-    batch_simulate(num_sim=10, model=LangChangeModel, params=parameters)
+    batch_simulate(num_sim=5, model=LangChangeModel, params=parameters)
 
