@@ -12,12 +12,13 @@ arg_parser.add_argument('--exp_id', help='Id of the experiment')
 arg_parser.add_argument('--simulations', help='Number of simulation runs')
 
 
-def run_experiment(parameters: Dict,
-                   mechanism_name: str,
-                   exp_name_suffix: str,
-                   experiment_id: int,
-                   out_dir: str):
+def run_experiment(parameters: Dict, mechanism_name: str,
+                   exp_name_suffix: str, experiment_id: int,
+                   out_dir: str) -> None:
 
+    """
+    Run a single experiment.
+    """
     sample = ap.Sample(parameters=parameters, n=50)
     exp = ap.Experiment(LangChangeModel, sample=sample, iterations=3, record=True)
     exp_results = exp.run(n_jobs=-1, verbose=10)
@@ -32,7 +33,26 @@ def run_experiment(parameters: Dict,
 def run_experiments(mechanism_name: str, min_N: int, max_N: int,
                     k: int, initial_p: float, p_range: List[Union[int, float]],
                     s_range: List[float], n_range: List[float],
-                    out_dir: str, experiment_id: int, sims: int):
+                    out_dir: str, experiment_id: int, sims: int) -> None:
+
+    """
+    Run an experiment for a specific set of parameters according to
+    a certain mechanism of language change. Save the output data.
+
+    Parameters:
+    -----------
+    mechanism_name:     Mechanism of language change: neutral_change, replicator_selection, or interactor_selection
+    min_N:              Minimal population size
+    max_N:              Maximal population size
+    k:                  Number of neighbours
+    initial_p:          Initial probability of the innovation
+    p_range:            Range of rewiring probability values
+    s_range:            Range of selection strength/pressure values
+    n_range:            Range of proportions of leaders
+    out_dir:            Output directory
+    experiment_id:      ID of the experiment
+    sims:               Number of simulation runs
+    """
 
     common_parameters = {
         'agents': ap.IntRange(min_N, max_N),
