@@ -124,11 +124,11 @@ class LangChangeModel(ap.Model):
 
         # Mechanism: Interactor selection
         # Compute the number of leaders
-        self.p.leaders = int(self.p.agents * self.p.n)
-        # Randomly choose the defined number of leaders from the population
-        leaders = self.random.sample(self.agents, self.p.leaders)
-        # Update the memory and the usage frequency of each agent from the subset
         if self.p.interactor_selection:
+            self.p.leaders = int(self.p.agents * self.p.n)
+            # Randomly choose the defined number of leaders from the population
+            leaders = self.random.sample(self.agents, self.p.leaders)
+            # Update the memory and the usage frequency of each agent from the subset
             for agent in leaders:
                 agent.memory = np.random.choice(self.p.lingueme, size=self.p.memory_size, p=[1, 0])
                 agent.A = np.count_nonzero(agent.memory == 'A') / len(agent.memory)
@@ -192,15 +192,15 @@ if __name__ == '__main__':
                   'lingueme': ('A', 'B'),
                   'memory_size': 10,
                   'initial_frequency': 0.2,
-                  'number_of_neighbors': 4,
-                  'rewiring_probability': 0.01,
-                  'interactor_selection': False,
+                  'number_of_neighbors': 9,
+                  'rewiring_probability': 1,
+                  'interactor_selection': True,
                   'replicator_selection': False,
-                  'neutral_change': True,
-                  'selection_pressure': 0.8,
-                  'n': 0.2,
+                  'neutral_change': False,
+                  'selection_pressure': 1,
+                  'n': 0.4,
                   'leaders': None,
-                  'steps': 1000
+                  'steps': 10000
                   }
 
     # Perform and plot a specific number of simulations

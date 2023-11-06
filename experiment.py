@@ -1,4 +1,4 @@
-from base import LangChangeModel
+from model import LangChangeModel
 import argparse
 import agentpy as ap
 import numpy as np
