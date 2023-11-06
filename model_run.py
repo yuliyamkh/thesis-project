@@ -36,7 +36,7 @@ def run_experiments(mechanism_name: str, min_N: int, max_N: int,
                     out_dir: str, experiment_id: int, sims: int) -> None:
 
     """
-    Run an experiment for a specific set of parameters according to
+    Run experiments for a specific set of parameters according to
     a certain mechanism of language change. Save the output data.
 
     Parameters:
