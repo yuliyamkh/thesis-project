@@ -1,88 +1,21 @@
 import matplotlib.pyplot as plt
 from typing import Type, Any
-import treelib
-
-"""
-Helper functions
-"""
 
 
-def build_tree(hierarchy):
-    """
-    Build a tree from the hierarchy of different populations
-    :param hierarchy: dict: {parent: children}
-    :return: tree
-    """
-
-    tree = treelib.Tree()
-
-    # Create nodes for all networks
-    for parent, children in hierarchy.items():
-        if not tree.contains(parent):
-            tree.create_node(parent, parent)
-
-        for child in children:
-            tree.create_node(child, child, parent=parent)
-
-    return tree
-
-
-def replicator_selection(relative_freq_innovation: float, b: float) -> float:
-    """
-    Generate replicator selection
-    :param b: selection pressure
-    :param relative_freq_innovation: relative frequency of using innovation
-    :return: updated relative frequency of using innovation
-    """
-    updated_relative_freq_innovation = relative_freq_innovation
-
-    if 0 <= relative_freq_innovation <= 1 / (1 + b):
-        updated_relative_freq_innovation = (1 + b) * relative_freq_innovation
-    if 1 / (1 + b) <= relative_freq_innovation <= 1:
-        updated_relative_freq_innovation = 1
-
-    return updated_relative_freq_innovation
-
-
-def interactor_selection(a: float, n: int,
-                         agent_id: int, neighbor_id: int,
-                         agent_u: float,
-                         agent_x: float) -> float:
-    """
-    Generate interactor selection
-    :return: updated relative frequency of using innovation
-    """
-
-    h_ij = 0.01
-
-    if agent_id > n and neighbor_id <= n:
-        h_ij = 0.01*a
-    else:
-        h_ij = h_ij
-
-    y = (1-h_ij) * agent_u + h_ij * agent_u
-    agent_x = agent_x + y
-
-    if agent_x < 0:
-        agent_x = 0
-    if agent_x > 1:
-        agent_x = 1
-
-    return agent_x
-
-
-def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
+def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> None:
     """
     Run the model through many iterations and plot the results
-    :param num_sim: number of iterations
-    :param model: model
-    :param params: parameters
-    :return: plot
+
+    Parameters:
+    -----------
+    num_sim:    Number of simulation runs
+    model:      Agent-based model
+    params:     A dictionary of model parameters
     """
 
     fig, ax = plt.subplots()
 
-    for i in range(1, num_sim+1):
+    for i in range(1, num_sim + 1):
         print(f'Simulation number: {i}')
         model_i = model(params)
         results_i = model_i.run()
@@ -94,10 +27,10 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict) -> plt.Figure:
     plt.xlim((0, params['steps']))
 
     text = (f'agents = {params["agents"]}\n'
-                         f'neighbors = {params["number_of_neighbors"]}\n'
-                         f'network = {params["rewiring_probability"]}\n'
-                         f'steps = {params["steps"]}\n'
-                         f'simulations = {num_sim}')
+            f'neighbors = {params["number_of_neighbors"]}\n'
+            f'network = {params["rewiring_probability"]}\n'
+            f'steps = {params["steps"]}\n'
+            f'simulations = {num_sim}')
 
     ax.annotate(text, xy=(1, 1), xytext=(-100, -15), fontsize=8,
                 xycoords='axes fraction', textcoords='offset points',
