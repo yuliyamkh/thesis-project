@@ -6,11 +6,6 @@ library(car)
 library(effects)
 library(performance)
 
-
-parser <- ArgumentParser()
-parser$add_argument("--path", help="Path to the CSV file")
-args <- parser$parse_args()
-
 # HELPER FUNCTIONS
 # Read data from a given file path
 read_csv_file <- function(path) {
