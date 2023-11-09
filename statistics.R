@@ -146,3 +146,32 @@ plot(predictorEffects(M_nc))
 plot(predictorEffects(M_rs))
 plot(predictorEffects(M_is))
 
+# EFFECT SIZE Cohen's f2
+# neutral change
+M_nc_rp_exluded <- lm(final_A ~ LogPopulationSize, data = nc_data)
+M_nc_ps_excluded <- lm(final_A ~ RewProbFactor, data = nc_data)
+
+nc_rewprob <- (summary(M_nc)$r.squared - summary(M_nc_rp_exluded)$r.squared) / 1 - summary(M_nc)$r.squared
+nc_ps <- (summary(M_nc)$r.squared - summary(M_nc_ps_exluded)$r.squared) / 1 - summary(M_nc)$r.squared
+
+# replicator selection
+M_rs_rp_exluded <- lm(final_A ~ LogPopulationSize + OrdinalPressure, data = rs_data)
+M_rs_ps_excluded <- lm(final_A ~ RewProbFactor + OrdinalPressure, data = rs_data)
+M_rs_op_excluded <- lm(final_A ~ LogPopulationSize + RewProbFactor, data = rs_data)
+
+rs_rewprob <- (summary(M_rs)$r.squared - summary(M_rs_rp_exluded)$r.squared) / 1 - summary(M_rs)$r.squared
+rs_ps <- (summary(M_rs)$r.squared - summary(M_rs_ps_exluded)$r.squared) / 1 - summary(M_rs)$r.squared
+rs_op <- (summary(M_rs)$r.squared - summary(M_rs_op_exluded)$r.squared) / 1 - summary(M_rs)$r.squared
+
+# interactor selection
+M_is_rp_exluded <- lm(final_A ~ LogPopulationSize + OrdinalPressure + Leaders, data = is_data)
+M_is_ps_excluded <- lm(final_A ~ RewProbFactor + OrdinalPressure + Leaders, data = is_data)
+M_is_op_excluded <- lm(final_A ~ LogPopulationSize + RewProbFactor + Leaders, data = is_data)
+M_is_l_excluded <- lm(final_A ~ LogPopulationSize + RewProbFactor + OrdinalPressure, data = is_data)
+
+is_rewprob <- (summary(M_is)$r.squared - summary(M_is_rp_exluded)$r.squared) / 1 - summary(M_is)$r.squared
+is_ps <- (summary(M_is)$r.squared - summary(M_is_ps_exluded)$r.squared) / 1 - summary(M_is)$r.squared
+is_op <- (summary(M_is)$r.squared - summary(M_is_op_exluded)$r.squared) / 1 - summary(M_is)$r.squared
+is_l <- (summary(M_is)$r.squared - summary(M_is_l_exluded)$r.squared) / 1 - summary(M_is)$r.squared
+
+
