@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ABM_AgentPy.iml" filepath="$PROJECT_DIR$/.idea/ABM_AgentPy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ABM_LangChange.iml" filepath="$PROJECT_DIR$/.idea/ABM_LangChange.iml" />
     </modules>
   </component>
 </project>
