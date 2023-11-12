@@ -228,5 +228,5 @@ if __name__ == '__main__':
 
     # Perform and plot a specific number of simulations
     # for one parameter set
-    batch_simulate(num_sim=sim_runs, model=LangChangeModel, params=parameters)
+    batch_simulate(num_sim=sim_runs, model=LangChangeModel, params=parameters, mech=mechanism)
 
