@@ -10,7 +10,7 @@ The effect of population size on language change has been the subject of a serie
 ## The multi-speaker Moran model
 ### Usage / Examples
 
-To run first experiments with [the multi-speaker Moran model](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt). After that, you can perform the following step: ```python model.py```. Consider that this command runs the default model with the following parameter setup:
+To run first experiments with the [multi-speaker Moran model](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt). After that, you can perform the following step: ```python model.py```. Consider that this command runs the default model with the following parameter setup:
 
 | Argument          | Description                            | Default        |
 |-------------------|----------------------------------------|----------------|
@@ -24,6 +24,6 @@ To run first experiments with [the multi-speaker Moran model](https://github.com
 | ```--exp_num```   | Number of experiments                  | 5              |
 | ```--mech```      | Mechanism name                         | neutral_change |
 
-To see information on arguments, you can also execute the following command: ```python model.py --help```. You can change the default arguments to the ones you want to experiment with.
+To see some more information on arguments, you can also execute the following command: ```python model.py --help```. You can change the default arguments to the ones you want to experiment with.
 
 
