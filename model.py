@@ -8,13 +8,13 @@ import argparse
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--ps', type=int, default=10, help='Number of agents')
-arg_parser.add_argument('--ifs', type=float, default=0.2, help='Initial frequency of the innovation')
+arg_parser.add_argument('--ifs', type=float, default=0.2, help='Initial innovation frequency')
 arg_parser.add_argument('--n_ns', type=int, default=4, help='Average number of neighbours per agents')
 arg_parser.add_argument('--rp', default=0, help='Rewiring probability: [0, 1.0]')
 arg_parser.add_argument('--sp', type=float, default=0.1, help='Selection pressure: [0.1, 1.0]')
-arg_parser.add_argument('--nls', default=0.1, help='Proportion of leaders')
-arg_parser.add_argument('--sim_steps', default=10000, help='Number of simulation steps')
-arg_parser.add_argument('--sim_runs', default=5, help='Number of simulation runs')
+arg_parser.add_argument('--nls', type=float, default=0.1, help='Proportion of leaders')
+arg_parser.add_argument('--sim_steps', type=int, default=100000, help='Number of simulation steps')
+arg_parser.add_argument('--exp_num', default=5, help='Number of experiments')
 arg_parser.add_argument('--m', default='neutral_change', help='Mechanism name')
 
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     sp = args.sp
     nls = args.nls
     sim_steps = args.sim_steps
-    sim_runs = args.sim_runs
+    exp_num = args.exp_num
 
     mechanism = args.m
 
@@ -228,5 +228,5 @@ if __name__ == '__main__':
 
     # Perform and plot a specific number of simulations
     # for one parameter set
-    batch_simulate(num_sim=sim_runs, model=LangChangeModel, params=parameters, mech=mechanism)
+    batch_simulate(num_exp=exp_num, model=LangChangeModel, params=parameters, mech=mechanism)
 

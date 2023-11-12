@@ -9,7 +9,7 @@ arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--mechanism', help='Mechanism of language change')
 arg_parser.add_argument('--output_dir', default='output_data', help='Output directory')
 arg_parser.add_argument('--exp_id', help='Id of the experiment')
-arg_parser.add_argument('--simulations', help='Number of simulation runs')
+arg_parser.add_argument('--simulations', type=int, help='Number of simulation runs')
 
 
 def run_experiment(parameters: Dict, mechanism_name: str,
@@ -63,7 +63,7 @@ def run_experiments(mechanism_name: str, min_N: int, max_N: int,
         'interactor_selection': False,
         'replicator_selection': False,
         'neutral_change': False,
-        'steps': int(sims)
+        'steps': sims
     }
 
     if mechanism_name == 'neutral_change':

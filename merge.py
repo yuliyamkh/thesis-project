@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('--directory', default='output_data', help='Output directory where simulation results are stored')
+arg_parser.add_argument('--source', default='output_data', help='Source directory where simulation results are stored')
 arg_parser.add_argument('--mechanism', help='Name of the mechanism')
 arg_parser.add_argument('--out_dir', default='final_output', help='Output directory')
 
@@ -71,11 +71,11 @@ def merge(mechanism_name: str, dir_path: str, directories: list, out_dir_path: s
 
 if __name__ == '__main__':
     args = arg_parser.parse_args()
-    directory = args.directory
-    dirs = os.listdir(directory)
+    source = args.source
+    dirs = os.listdir(source)
     out_dir = args.out_dir
     mechanism = args.mechanism
     merge(mechanism_name=mechanism,
-          dir_path=directory,
+          dir_path=source,
           directories=dirs,
           out_dir_path=out_dir)

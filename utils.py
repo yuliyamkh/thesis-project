@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from typing import Type, Any
 
 
-def batch_simulate(num_sim: int, model: Type[Any], params: dict, mech: str) -> None:
+def batch_simulate(num_exp: int, model: Type[Any], params: dict, mech: str) -> None:
     """
     Run the model through many iterations and plot the results
 
@@ -16,7 +16,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict, mech: str) -> N
 
     fig, ax = plt.subplots()
 
-    for i in range(1, num_sim + 1):
+    for i in range(1, num_exp + 1):
         print(f'Simulation number: {i}')
         model_i = model(params)
         results_i = model_i.run()
@@ -33,7 +33,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict, mech: str) -> N
                 f'neighbors = {params["number_of_neighbors"]}\n'
                 f'network = {params["rewiring_probability"]}\n'
                 f'steps = {params["steps"]}\n'
-                f'simulations = {num_sim}')
+                f'simulations = {num_exp}')
 
     if mech == 'replicator_selection':
         text = (f'agents = {params["agents"]}\n'
@@ -41,7 +41,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict, mech: str) -> N
                 f'network = {params["rewiring_probability"]}\n'
                 f'selection pressure = {params["selection_pressure"]}\n'
                 f'steps = {params["steps"]}\n'
-                f'simulations = {num_sim}')
+                f'simulations = {num_exp}')
 
     if mech == 'interactor_selection':
         text = (f'agents = {params["agents"]}\n'
@@ -50,7 +50,7 @@ def batch_simulate(num_sim: int, model: Type[Any], params: dict, mech: str) -> N
                 f'selection pressure = {params["selection_pressure"]}\n'
                 f'leaders = {params["n"]}\n'
                 f'steps = {params["steps"]}\n'
-                f'simulations = {num_sim}')
+                f'simulations = {num_exp}')
 
     ax.annotate(text, xy=(1, 1), xytext=(-120, -15), fontsize=8,
                 xycoords='axes fraction', textcoords='offset points',
