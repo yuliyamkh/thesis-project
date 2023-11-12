@@ -22,8 +22,21 @@ To run first experiments with the [multi-speaker Moran model](https://github.com
 | ```--nls```       | Proportion of leaders                  | 0.1            |
 | ```--sim_steps``` | Number of simulation steps             | 100000         |
 | ```--exp_num```   | Number of experiments                  | 5              |
-| ```--mech```      | Mechanism name                         | neutral_change |
+| ```--m```         | Mechanism name                         | neutral_change |
 
-To see some more information on arguments, you can also execute the following command: ```python model.py --help```. You can change the default arguments to the ones you want to experiment with.
+To see some more information on arguments, you can also execute the following command: ```python model.py --help```. You can change the default arguments to the ones you want to experiment with. Examples of the default model (with the neutral change mechanism), the model with the replicator selection mechanism and the model with the interactor selection mechanism are shown below.
+
+#### Example 1: Neutral change
+Command: ```python model.py --sim_steps 5000```
+![Image](neutral_change.png)
+
+#### Example 2: Replicator Selection
+Command: ```python model.py --m replicator_selection --sim_steps 5000```
+![Image](replicator_selection.png)
+
+#### Example 3: Interactor Selection
+Command: ```python model.py --m interactor_selection --sim_steps 5000 --nls 0.3```
+![Image](interactor_selection.png)
+
 
 
