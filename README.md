@@ -43,8 +43,8 @@ Command: ```python model.py --m interactor_selection --sim_steps 5000 --nls 0.3`
 
 
 ### Experiment / Output / Visualisation
-To conduct an experiment using the model with a specific mechanism of language change and to save the generated output in CSV format, run the following command: ```python experiment.py --mechanism <mechanism_name> --simulations <number_of_simulation_runs> --exp_id <experiment_ID>```. If you want to specify your own output directory, use the additional argument: ```--output_dir <path_to_output_directory>```. To see more information on arguments, use the following command: ```python experiment.py --help```.
+1. To conduct an experiment using the model with a specific mechanism of language change and to save the generated output in CSV format, run the following command: ```python experiment.py --mechanism <mechanism_name> --simulations <number_of_simulation_runs> --exp_id <experiment_ID>```. If you want to specify your own output directory, use the additional argument: ```--output_dir <path_to_output_directory>```. To see more information on arguments, use the following command: ```python experiment.py --help```.
 
-To merge the generated output into one single CSV file, run ```python merge.py --mechanism <mechanism_name>```. To specify your own source directory (where the output from the previous step is stored) and your own output directory for the final CSV file, use the two arguments: ```--source <path_to_source_directory>``` and ```--out_dir <path_to_output_directory```.
+2. To merge the generated output into one single CSV file, run ```python merge.py --mechanism <mechanism_name>```. To specify your own source directory (where the output from the previous step is stored) and your own output directory for the final CSV file, use the two arguments: ```--source <path_to_source_directory>``` and ```--out_dir <path_to_output_directory```.
 
-To visualise the results, execute the command ```python visualise.py --directory <path_to_CSV_file> --mechanism <mechanism_name>```.
+3. To visualise the results, execute the command ```python visualise.py --directory <path_to_CSV_file> --mechanism <mechanism_name>```.
