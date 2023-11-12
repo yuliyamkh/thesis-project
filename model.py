@@ -4,6 +4,18 @@ import agentpy as ap
 import numpy as np
 import networkx as nx
 from utils import batch_simulate
+import argparse
+
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('--ps', type=int, default=10, help='Number of agents')
+arg_parser.add_argument('--ifs', type=float, default=0.2, help='Initial frequency of the innovation')
+arg_parser.add_argument('--n_ns', type=int, default=4, help='Average number of neighbours per agents')
+arg_parser.add_argument('--rp', default=0, help='Rewiring probability: [0, 1.0]')
+arg_parser.add_argument('--sp', type=float, default=0.1, help='Selection pressure: [0.1, 1.0]')
+arg_parser.add_argument('--nls', default=0.1, help='Proportion of leaders')
+arg_parser.add_argument('--sim_steps', default=10000, help='Number of simulation steps')
+arg_parser.add_argument('--sim_runs', default=5, help='Number of simulation runs')
+arg_parser.add_argument('--m', default='neutral_change', help='Mechanism name')
 
 
 class Agent(ap.Agent):
@@ -186,24 +198,35 @@ class LangChangeModel(ap.Model):
 
 
 if __name__ == '__main__':
+    args = arg_parser.parse_args()
+    ps = args.ps
+    ifs = args.ifs
+    ns = args.n_ns
+    rp = args.rp
+    sp = args.sp
+    nls = args.nls
+    sim_steps = args.sim_steps
+    sim_runs = args.sim_runs
 
-    # Parameters setup
-    parameters = {'agents': 10,
+    mechanism = args.m
+
+    parameters = {'agents': ps,
                   'lingueme': ('A', 'B'),
                   'memory_size': 10,
-                  'initial_frequency': 0.2,
-                  'number_of_neighbors': 9,
-                  'rewiring_probability': 1,
-                  'interactor_selection': True,
-                  'replicator_selection': False,
-                  'neutral_change': False,
-                  'selection_pressure': 1,
-                  'n': 0.4,
+                  'initial_frequency': ifs,
+                  'number_of_neighbors': ns,
+                  'rewiring_probability': rp,
+                  'interactor_selection': mechanism == 'interactor_selection',
+                  'replicator_selection': mechanism == 'replicator_selection',
+                  'neutral_change': mechanism == 'neutral_change',
+                  'selection_pressure': sp,
+                  'n': nls,
                   'leaders': None,
-                  'steps': 10000
+                  'steps': sim_steps
                   }
+    # print(parameters)
 
     # Perform and plot a specific number of simulations
     # for one parameter set
-    batch_simulate(num_sim=5, model=LangChangeModel, params=parameters)
+    batch_simulate(num_sim=sim_runs, model=LangChangeModel, params=parameters)
 
