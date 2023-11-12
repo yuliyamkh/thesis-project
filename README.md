@@ -10,7 +10,20 @@ The effect of population size on language change has been the subject of a serie
 ## The multi-speaker Moran model
 ### Usage / Examples
 
-To experiment with [the multi-speaker Moran model](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt).
+To run first experiments with [the multi-speaker Moran model](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt). After that, you can perform the following step: ```python model.py```. Consider that this command runs the default model with the following parameter setup:
+
+| Argument          | Description                            | Default        |
+|-------------------|----------------------------------------|----------------|
+| ```--ps```        | Number of agents                       | 10             |
+| ```--ifs```       | Initial innovation frequency           | 0.2            |
+| ```--n_ns```      | Average number of neighbours per agent | 4              |
+| ```--rp```        | Rewiring probability                   | 0              |
+| ```--sp```        | Selection pressure/strength            | 0.1            |
+| ```--nls```       | Proportion of leaders                  | 0.1            |
+| ```--sim_steps``` | Number of simulation steps             | 100000         |
+| ```--exp_num```   | Number of experiments                  | 5              |
+| ```--mech```      | Mechanism name                         | neutral_change |
+
 
 
 
