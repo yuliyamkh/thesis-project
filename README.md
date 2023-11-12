@@ -9,7 +9,8 @@ The effect of population size on language change has been the subject of a serie
 
 ## The multi-speaker Moran model
 ### Usage / Examples
-To experiment with [the multi-speaker Moran model] (https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt] (https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt).
+
+To experiment with [the multi-speaker Moran model](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/model.py), make sure to install the packages listed in [requirements.txt](https://github.com/yuliyamkh/ABM_AgentPy/blob/master/requirements.txt).
 
 
 
