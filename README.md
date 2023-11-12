@@ -28,14 +28,17 @@ To see some more information on arguments, you can also execute the following co
 
 #### Example 1: Neutral change
 Command: ```python model.py --sim_steps 5000```
+
 ![Image](images/neutral_change.png)
 
 #### Example 2: Replicator Selection
 Command: ```python model.py --m replicator_selection --sim_steps 5000```
+
 ![Image](images/replicator_selection.png)
 
 #### Example 3: Interactor Selection
 Command: ```python model.py --m interactor_selection --sim_steps 5000 --nls 0.3```
+
 ![Image](images/interactor_selection.png)
 
 
