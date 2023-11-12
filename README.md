@@ -24,6 +24,6 @@ To run first experiments with [the multi-speaker Moran model](https://github.com
 | ```--exp_num```   | Number of experiments                  | 5              |
 | ```--mech```      | Mechanism name                         | neutral_change |
 
-
+To see information on arguments, you can also execute the following command: ```python model.py --help```. You can change the default arguments to the ones you want to experiment with.
 
 
