@@ -67,6 +67,7 @@ def merge(mechanism_name: str, dir_path: str, directories: list, out_dir_path: s
 
     # Save the DataFrame as a CSV file in the specified directory
     result.to_csv(os.path.join(out_dir_path, f'{mechanism_name}_output_test.csv'))
+    print(f'Data saved to {out_dir_path}/{mechanism_name}_output_test.csv')
 
 
 if __name__ == '__main__':
