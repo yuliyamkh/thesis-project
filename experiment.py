@@ -13,7 +13,8 @@ arg_parser.add_argument('--simulations', type=int, help='Number of simulation ru
 arg_parser.add_argument('--min_N', type=int, default=10, help='Minimal population size')
 arg_parser.add_argument('--max_N', type=int, default=10000, help='Maximal population size')
 arg_parser.add_argument('--in_p', type=float, default=0.2, help='Initial probability of the innovation')
-
+arg_parser.add_argument('--p_range', type=list, default=[0, 0.01, 1], help='Range of rewiring probability values')
+arg_parser.add_argument('--k', type=int, default=4, help='Number of neighbours')
 
 def run_experiment(parameters: Dict, mechanism_name: str,
                    exp_name_suffix: str, experiment_id: int,
@@ -111,11 +112,13 @@ if __name__ == '__main__':
     min_N = args.min_N
     max_N = args.max_N
     in_p = args.in_p
+    p_range = args.p_range
+    k = args.k
 
     run_experiments(mechanism_name=mechanism,
                     min_N=min_N, max_N=max_N,
-                    initial_p=in_p, k=4,
-                    p_range=[0, 0.01, 1],
+                    initial_p=in_p, k=k,
+                    p_range=p_range,
                     s_range=np.arange(0.1, 1.1, 0.1),
                     n_range=[0.1, 0.2],
                     experiment_id=exp_id,
