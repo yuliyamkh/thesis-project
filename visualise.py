@@ -23,6 +23,9 @@ def plot_data(data: DataFrame, rewiring_probabilities: list, selection_pressures
     n_values:                    An optional list of proportions of leaders.
     """
 
+    max_N = data['population_size'].max()
+    min_N = data['population_size'].min()
+
     fig, axs = plt.subplots(1, len(rewiring_probabilities))
 
     if mechanism == 'interactor_selection':
@@ -37,7 +40,7 @@ def plot_data(data: DataFrame, rewiring_probabilities: list, selection_pressures
 
                     ax.set_ylabel('L', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
                     ax.set_xlabel('N', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
-                    ax.set_xlim([0, 10000])
+                    ax.set_xlim([min_N, max_N])
                     ax.set_ylim([0, 1])
 
                     if rewiring_probability == 0.00:
@@ -60,7 +63,7 @@ def plot_data(data: DataFrame, rewiring_probabilities: list, selection_pressures
 
                 ax.set_ylabel('L', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
                 ax.set_xlabel('N', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
-                ax.set_xlim([0, 10000])
+                ax.set_xlim([min_N, max_N])
                 ax.set_ylim([0, 1])
 
                 if rewiring_probability == 0.00:
@@ -82,7 +85,7 @@ def plot_data(data: DataFrame, rewiring_probabilities: list, selection_pressures
 
             ax.set_ylabel('L', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
             ax.set_xlabel('N', fontdict={'fontsize': 12, 'fontstyle': 'italic'})
-            ax.set_xlim([0, 10000])
+            ax.set_xlim([min_N, max_N])
             ax.set_ylim([0, 1])
 
             if rewiring_probability == 0.00:
