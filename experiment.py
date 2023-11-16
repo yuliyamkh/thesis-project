@@ -6,10 +6,13 @@ import os
 from typing import List, Union, Dict
 
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('--mechanism', help='Mechanism of language change')
+arg_parser.add_argument('--mechanism', type=str, help='Mechanism of language change')
 arg_parser.add_argument('--output_dir', default='output_data', help='Output directory')
-arg_parser.add_argument('--exp_id', help='Id of the experiment')
+arg_parser.add_argument('--exp_id', type=int, help='Id of the experiment')
 arg_parser.add_argument('--simulations', type=int, help='Number of simulation runs')
+arg_parser.add_argument('--min_N', type=int, default=10, help='Minimal population size')
+arg_parser.add_argument('--max_N', type=int, default=10000, help='Maximal population size')
+arg_parser.add_argument('--in_p', type=float, default=0.2, help='Initial probability of the innovation')
 
 
 def run_experiment(parameters: Dict, mechanism_name: str,
@@ -105,10 +108,13 @@ if __name__ == '__main__':
     output_dir = args.output_dir
     exp_id = args.exp_id
     simulations = args.simulations
+    min_N = args.min_N
+    max_N = args.max_N
+    in_p = args.in_p
 
     run_experiments(mechanism_name=mechanism,
-                    min_N=5, max_N=10,
-                    initial_p=0.2, k=4,
+                    min_N=min_N, max_N=max_N,
+                    initial_p=in_p, k=4,
                     p_range=[0, 0.01, 1],
                     s_range=np.arange(0.1, 1.1, 0.1),
                     n_range=[0.1, 0.2],
