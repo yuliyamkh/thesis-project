@@ -53,9 +53,9 @@ check_homoscedasticity <- function(mdl) {
 
 # LOAD DATA
 # generated under neutral change, replicator selection, and interactor selection
-nc_data <- read_csv_file("C:\\Users\\avror\\PycharmProjects\\ABM_AgentPy\\output\\neutral_change_output.csv")
-rs_data <- read_csv_file("C:\\Users\\avror\\PycharmProjects\\ABM_AgentPy\\output\\replicator_selection_output.csv")
-is_data <- read_csv_file("C:\\Users\\avror\\PycharmProjects\\ABM_AgentPy\\output\\interactor_selection_output.csv")
+nc_data <- read_csv_file("path_to_neutral_change_output.csv")
+rs_data <- read_csv_file("path_to_replicator_selection_output.csv")
+is_data <- read_csv_file("path_to_interactor_selection_output.csv")
 
 head(nc_data)
 head(rs_data)
